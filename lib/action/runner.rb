@@ -15,7 +15,8 @@ module EpubForge
     
     class ActionLoader < Utils::FilePath
       def class_name
-        base = self.basename.split('.')[0].camelize
+        base = self.basename.to_s.split('.')[0].camelize
+        puts base
         "EpubForge::Action::#{base}"
       end
       
@@ -43,7 +44,7 @@ module EpubForge
       attr_accessor :actions, :action_directories, :keywords
       
       def self.actions_directories
-        @actions_directories ||= [ Directory.new( EpubForge.root.join( "lib", "actions" ) ) ]
+        @actions_directories ||= [ Directory.new( EpubForge.root.join( "actions" ) ) ]
         
         @actions_directories
       end
