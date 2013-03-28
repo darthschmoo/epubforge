@@ -1,0 +1,14 @@
+module EpubForge
+  module Action
+    class ActionFromProjectActionsDirectory < AbstractAction
+      description "Use this file in the actions/ folder as a template for your custom actions."
+      keywords    :project_action
+      usage       "#{$PROGRAM_NAME} project_action"
+      needs_no_project
+      
+      def do( project, args )
+        puts "Do something to your project."
+      end
+    end
+  end
+end

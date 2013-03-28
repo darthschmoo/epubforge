@@ -1,0 +1,23 @@
+# Used by epubforge.
+# Yaml format.  
+
+metadata:
+  name: "My Nifty Project"
+  author: "My Name"
+
+filename: "file_prefix_for_ebook"
+  
+git:
+  repo_folder: "/home/username/git"
+  remote_host: "tux"
+  remote_user: "username"
+
+
+# Any .markdown pages not listed here will be added
+# to the ebook after the listed pages, in alphabetical order of 
+# filename.  In this example, the title_page.markdown file goes first,
+# then the foreword.markdown page, and finally chapters 1 and 2 (in order).
+
+pages:
+  - title_page
+  - foreword
