@@ -1,3 +1,5 @@
+# Trivial change
+
 module EpubForge
   module Action
     # Directory containing action files
