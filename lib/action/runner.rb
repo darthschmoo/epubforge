@@ -1,4 +1,4 @@
-# Trivial change
+# Another trivial change
 
 module EpubForge
   module Action
