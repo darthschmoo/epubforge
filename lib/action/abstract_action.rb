@@ -34,25 +34,6 @@ module EpubForge
       def fetch_project( dir )
         Epub::Project.new( dir )
       end
-      
-      # Not all actions require a target project to run, but the default assumpion
-      # is that the action will be executed on a project.  To contradict the assumption,
-      # declare 'needs_no_project' or 'needs_project( false )' in your definition.
-      def self.needs_project?
-        defined?(@needs_project) ? @needs_project : true
-      end
-      
-      def self.needs_no_project
-        @needs_project = false  
-      end
-      
-      def self.needs_project( bool = true )
-        @needs_project = bool
-      end
-
-      def needs_project?
-        self.class.needs_project != false
-      end
     end
   end
 end

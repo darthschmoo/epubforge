@@ -3,13 +3,18 @@ source "http://rubygems.org"
 # Example:
 #   gem "activesupport", ">= 2.3.5"
 
-ruby "~> 1.9"
+# TODO:  How the hell do you say "any version of Ruby 1.9?"  Google-fu fails me.
+# ruby "1.9.x"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
+
+gem "builder"
+
 group :development do
   gem "rdoc", "~> 3.12"
   gem "bundler", "~> 1.3.0"
   gem "jeweler", "~> 1.8.4"
-  # gem "rcov", ">= 0"
+  gem "shoulda", "~> 3.3"
+  gem "debugger"
 end

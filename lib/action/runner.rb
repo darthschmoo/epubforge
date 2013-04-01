@@ -4,9 +4,8 @@ module EpubForge
   module Action
     # Directory containing action files
     class Directory < Utils::FilePath
-      def glob( *args )
-        args = [ "**", "*.rb" ] if args.length == 0
-        Dir.glob( self.join( *args ) ).map{ |f| ActionLoader.new(f) }
+      def fetch_loaders
+        self.glob( "**", "*.rb" ).map{ |f| ActionLoader.new(f) }
       end
     end
     
@@ -16,7 +15,6 @@ module EpubForge
     class ActionLoader < Utils::FilePath
       def class_name
         base = self.basename.to_s.split('.')[0].camelize
-        puts base
         "EpubForge::Action::#{base}"
       end
       
@@ -35,7 +33,7 @@ module EpubForge
       end
       
       def to_class
-        eval self.class_name
+        Kernel.const_get( self.class_name )
       end
     end
     
@@ -44,7 +42,10 @@ module EpubForge
       attr_accessor :actions, :action_directories, :keywords
       
       def self.actions_directories
-        @actions_directories ||= [ Directory.new( EpubForge.root.join( "actions" ) ) ]
+        @actions_directories ||= []
+        if [].length == 0
+          add_actions_directory( Directory.new( EpubForge.root.join( "actions" ) ) )
+        end
         
         @actions_directories
       end
@@ -53,12 +54,12 @@ module EpubForge
         dir = Directory.new( dir )
         if dir.exist?
           @actions_directories << dir
-          add_actions_from_onedirectory( dir )
+          add_actions_from_one_directory( dir )
         end
       end
 
       def add_actions_from_one_directory( dir )
-        new_files = dir.glob
+        new_files = dir.fetch_loaders
         @actions_class_files ||= []
         @actions ||= []
         @keywords ||= {}
@@ -78,7 +79,7 @@ module EpubForge
       # If this results in more than one action being found, the proper
       # response is to panic and flail arms.
       def keyword_to_action( keyword )
-        @keywords.keys.select{ |k| k.match(/^#{keyword}/) }.map{|k| @keywords[k]}.uniq
+        @keywords.keys.select{ |k| k.match(/^#{keyword}/) }.map{ |k| @keywords[k] }.uniq
       end
 
       def initialize
@@ -101,22 +102,17 @@ module EpubForge
         keyword = args.shift || "help"     
 
         # discover project directory
-
         project_dir = args[0] ? args[0].epf_filepath.expand : nil      # able to pass in partial/relative filenames
         
         if project_dir && Project.is_project_dir?( project_dir )
-          args.pop 
+          args.shift 
         else
           # see if command is given from inside a project directory.
-          project_dir = Utils::FilePath.cwd
-          if Project.is_project_dir?( project_dir )
-            # any project-specific actions to load?
-            self.add_actions_directory( project_dir.join( "actions" ) )
-          else
-            # no project dir given
-            project_dir = nil
-          end
-        end    
+          project_dir = infer_project_directory
+        end 
+        
+        self.add_actions_directory( project_dir.join( "actions" ) ) if project_dir
+           
 
         run_description = RunDescription.new
         run_description.project = Project.new( project_dir ) if project_dir
@@ -128,7 +124,6 @@ module EpubForge
           run_description.args = args
           
           run( run_description )
-
         elsif actions.length == 0
           puts "Unrecognized keyword <#{keyword}>.  Quitting."
         else
@@ -137,7 +132,11 @@ module EpubForge
             puts action.usage
           end
         end
-
+      end
+      
+      def infer_project_directory
+        project_dir = Utils::FilePath.cwd
+        Project.is_project_dir?( project_dir ) ? project_dir : nil
       end
     end
   end

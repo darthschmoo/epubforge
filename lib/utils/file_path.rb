@@ -1,10 +1,4 @@
 module EpubForge
-  module Exceptions
-    class FileError < Exception; end
-    class FileDoesNotExist < FileError; end
-    class FileMustNotExist < FileError; end
-  end
-  
   module Utils
     class FilePath < Pathname
       def initialize( *args )
@@ -20,23 +14,11 @@ module EpubForge
         self.cwd( *args )
       end
 
-      # def join( *args )
-      #   (args.length > 0) ? self.class.new( File.join( self, *args ) ) : self
-      # end
+      def join( *args )
+        self.class.new( super(*args) )
+      end
 
       alias :exists? :exist?
-      
-      # def exist?
-      #   File.exist?( self )
-      # end
-      # 
-      # def basename
-      #   self.class.new( File.basename( self ) )
-      # end
-      # 
-      # def dirname
-      #   self.class.new( File.dirname( self ) )
-      # end
       
       def up
         self.class.new( self.join("..") ).expand
@@ -49,23 +31,22 @@ module EpubForge
       def expand
         self.class.new( File.expand_path( self ) )
       end
-      
-      # def read( *args )
-      #   File.open( self, "r" ).read( *args )
-      # end
 
       def touch
         `touch #{self.expand}`
+        raise "File does not exist or is not writable: #{filename}" if $? != 0
+        
         self
       end
       
-      # def file?
-      #   File.file?( self )
-      # end
-      # 
-      # def directory?
-      #   File.directory?( self )
-      # end
+      def grep( regex )
+        return [] unless self.file?
+        matching = []
+        self.each_line do |line|
+          matching.push( line ) if line.match( regex )
+        end
+        matching
+      end
 
       # Not the same as zero?
       def empty?
@@ -76,6 +57,10 @@ module EpubForge
         elsif self.directory?
           self.glob( "**", "*" ).length == 0
         end
+      end
+      
+      def epf_filepath
+        self
       end
     end
   end

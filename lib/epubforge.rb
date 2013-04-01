@@ -3,11 +3,13 @@
 # require 'readline'
 # require 'singleton'
 # require 'builder'
+require 'debugger'
 require 'singleton'
 require 'builder'
-require 'debugger'
 require 'pathname'
 require 'tmpdir'         # Dir.mktmpdir
+require 'net/http'
+require 'open-uri'            # needed by Utils::Downloader
 
 EpubForge = Module.new
 EpubForge::DEBUG = false
@@ -22,13 +24,15 @@ end
 
 # Allow me to use all my fave decorative 
 # methods without polluting everyone else's.
-require_relative 'core_extensions/array'
-require_relative 'core_extensions/file'
+# require_relative 'core_extensions/array'
+# require_relative 'core_extensions/file'
 require_relative 'core_extensions/kernel'
 require_relative 'core_extensions/object'
 require_relative 'core_extensions/string'
 
 
+require_relative 'utils/directory_builder'
+require_relative 'utils/downloader'
 require_relative 'utils/file_path'  # 
 require_relative 'utils/root_path'
 
