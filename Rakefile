@@ -18,10 +18,24 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/darth_schmoo/epubforge"
   gem.license = "MIT"
   gem.summary = %Q{A command-line utility for the electronic publishing of writing projects.}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.description = %Q{A longer description of your gem}
   gem.email = "keeputahweird@gmail.com"
   gem.authors = ["Bryce Anderson"]
   # dependencies defined in Gemfile
+  
+  
+  gem.files = Dir.glob( File.join( ".", "lib", "**", "*.rb" ) ) + 
+              Dir.glob( File.join( ".", "templates", "**", "*.*" ) ) +
+              Dir.glob( File.join( ".", "test", "**", "*.rb" ) ) +
+              Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +
+              [ "Gemfile", 
+                "Rakefile", 
+                "LICENSE.txt", 
+                "README.rdoc", 
+                File.join( ".", "bin", "epubforge" ) 
+              ]
+               
+  
 end
 Jeweler::RubygemsDotOrgTasks.new
 
@@ -32,13 +46,13 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
-require 'rcov/rcovtask'
-Rcov::RcovTask.new do |test|
-  test.libs << 'test'
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
-  test.rcov_opts << '--exclude "gems/*"'
-end
+# require 'rcov/rcovtask'
+# Rcov::RcovTask.new do |test|
+#   test.libs << 'test'
+#   test.pattern = 'test/**/test_*.rb'
+#   test.verbose = true
+#   test.rcov_opts << '--exclude "gems/*"'
+# end
 
 task :default => :test
 
