@@ -5,7 +5,7 @@ module EpubForge
       keywords    :forge, :book
       usage       "#{$PROGRAM_NAME} forge <project_directory (optional if current directory)>"
       
-      def do( project, args = [] )
+      def do( project, *args )
         @project = project
         
         builder = EpubForge::Epub::Builder.new( @project.book_dir, @project.config )

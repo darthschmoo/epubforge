@@ -5,7 +5,7 @@ module EpubForge
       keywords    :notes, :forge_notes
       usage       "#{$PROGRAM_NAME} notes <project_directory>"
       
-      def do( project, args = [] )
+      def do( project, *args )
         @project = project
         builder = EpubForge::Epub::Builder.new( @project.notes_dir, @project.config )
         builder.build

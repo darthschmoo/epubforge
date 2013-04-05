@@ -9,8 +9,7 @@ module EpubForge
         File.exist?( File.join( @project.target_dir, ".git" ) )
       end
       
-      def do( project, args = [] )
-        puts "Received arguments #{args.inspect} (#{args.class})"
+      def do( project, *args )
         @project = project
         @message = args.length > 1 ? args.last : "incremental backup"
         

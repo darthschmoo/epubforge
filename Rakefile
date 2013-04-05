@@ -35,7 +35,7 @@ Jeweler::Tasks.new do |gem|
                 File.join( ".", "bin", "epubforge" ) 
               ]
                
-  
+  gem.default_executable = File.join(".", "bin", "epubforge" )
 end
 Jeweler::RubygemsDotOrgTasks.new
 

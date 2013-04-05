@@ -9,8 +9,8 @@ module EpubForge
                 :filename_for_mobi_notes, :actions_dir
                 
     def initialize( target_dir )
-      @target_dir = target_dir.epf.blank? ? Utils::FilePath.new( Dir.pwd ) : Utils::FilePath.new( target_dir )
-      @target_dir = target_dir.epf_filepath.expand
+      @target_dir = Utils::FilePath.new( target_dir )
+      @target_dir = target_dir.expand
       
       @recipe_file = @target_dir.join( RECIPE_FILE_NAME )
 

@@ -14,8 +14,12 @@ module EpubForge
         self.cwd( *args )
       end
 
-      def join( *args )
-        self.class.new( super(*args) )
+      def join( *args, &block )
+        if block_given?
+          yield self.class.new( super(*args) )
+        else
+          self.class.new( super(*args) )
+        end
       end
 
       alias :exists? :exist?
@@ -37,6 +41,24 @@ module EpubForge
         raise "File does not exist or is not writable: #{filename}" if $? != 0
         
         self
+      end
+      
+      def write( content = nil, &block )
+        File.open( self, "w" ) do |f|
+          f << content if content
+          if block_given?
+            yield f
+          end
+        end
+      end
+      
+      def append( content = nil, &block )
+        File.open( self, "a" ) do |f|
+          f << content if content
+          if block_given?
+            yield f
+          end
+        end
       end
       
       def grep( regex )

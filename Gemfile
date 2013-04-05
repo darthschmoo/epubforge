@@ -10,6 +10,7 @@ source "http://rubygems.org"
 # Include everything needed to run rake, tests, features, etc.
 
 gem "builder"
+gem "nokogiri", "~> 1.5"
 
 group :development do
   gem "rdoc", "~> 3.12"

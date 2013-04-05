@@ -29,14 +29,11 @@ module EpubForge
         end
       end
       
-      def copy( *files )
-        for file in files
-          if file.is_a?(Array)                    # rename file on copy.
-            FileUtils.copy( file.first, @current_path.join( file.last ) )
-          else
-            FileUtils.copy( file, @current_path )
-          end
-        end
+      # Copies the given source file into a file in the current_path.
+      # If a dest_name is given, the new file will be given that name.
+      def copy( src_filepath, dest_name = nil )
+        dest_filepath = dest_name ? @current_path.join(dest_name) : @current_path
+        FileUtils.copy( src_filepath, dest_filepath )
       end
       
       def file( name = nil, &block )
@@ -149,7 +146,7 @@ end
 #       t.vars(quot: "That wasn't my duck.", photo: "john.png", css: "font-family: arial")
 #     end
 # 
-#     b.
+#     b.copy( [src_dir.join("abba.txt"), "baab.txt"] )  # contents of abba.txt copied into baab.txt
 #   
 #     
 #     b.file( ".lockfile" )   # creates an empty file

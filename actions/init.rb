@@ -5,9 +5,9 @@ module EpubForge
       description "Create a new epubforge project."
       keywords    :init, :initialize, :new
       usage       "#{$PROGRAM_NAME} init <project_directory> (directory shouldn't exist)"
-      needs_no_project
+      project_not_required
       
-      def do( project, args )
+      def do( project, *args )
         target_dir = args.pop
 
         if target_dir.nil?

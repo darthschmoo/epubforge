@@ -20,7 +20,7 @@ module EpubForge
         File.exist?( File.join( @project.target_dir, ".git" ) )
       end
       
-      def do( project, args )
+      def do( project, *args )
         @project = project
         @gitconf = @project.config["git"]
         

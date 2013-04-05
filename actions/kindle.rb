@@ -5,7 +5,7 @@ module EpubForge
       keywords    :kindle, :push, :b2k
       usage       "#{$PROGRAM_NAME} b2k <project_directory>"
       
-      def do( project, args )
+      def do( project, *args )
         @project = project
         BookToEpub.new.do( @project )
         

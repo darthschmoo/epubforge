@@ -256,7 +256,7 @@ module EpubForge
         FileUtils.rm( epub_file ) if File.exist?( epub_file )
         # `cd #{SCRATCH_DIR} && zip -Xr #{File.join( "..", epub_file)} #{File.join(SCRATCH_DIR, 'mimetype')} #{File.join(SCRATCH_DIR, 'META-INF')}#{File.join(SCRATCH_DIR, 'OEBPS')}`
         puts "Writing epub directory #{@scratch_dir} to #{epub_file}"
-        `cd #{@scratch_dir} && zip -Xr #{epub_file.backhashed_filename} mimetype META-INF OEBPS`
+        `cd #{@scratch_dir} && zip -Xr #{epub_file.epf_backhashed_filename} mimetype META-INF OEBPS`
       end
   
       def clean

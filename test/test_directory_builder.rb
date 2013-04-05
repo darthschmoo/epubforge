@@ -3,20 +3,6 @@ require 'helper'
 DirBuilder = EpubForge::Utils::DirectoryBuilder
 
 class TestDirectoryBuilder < Test::Unit::TestCase
-  # def test_should_rename_files_on_copy
-  #   d = DirBuilder.new( EpubForge.root )
-  #   assert_kind_of DirBuilder, d
-  #   
-  #   DirBuilder.tmpdir do |b|
-  #     assert_equal DirBuilder, b.class
-  #     arr = [ EpubForge.root.join("lib", "custom_helpers.rb"), "helpers.rb" ] # rename dest 
-  #     assert_kind_of Array, arr
-  #     assert arr.is_a?(Array)
-  # 
-  #     b.copy arr
-  #   end
-  # end  
-  
   context "tearing my hair out because shoulda seems borked" do
     should "stop blaming shoulda for my problems" do
       assert true
@@ -76,11 +62,9 @@ class TestDirectoryBuilder < Test::Unit::TestCase
     should "copy files from elsewhere, renaming the file in the destination" do
       DirBuilder.tmpdir do |b|
         assert_equal DirBuilder, b.class
-        arr = [ EpubForge.root.join("lib", "custom_helpers.rb"), "helpers.rb" ] # rename dest 
-        assert_kind_of Array, arr
-        assert arr.is_a?(Array)
-  
-        b.copy arr
+        assert !b.current_path.join("helpers.rb").exist?
+        b.copy( EpubForge.root.join("lib", "custom_helpers.rb"), "helpers.rb" )
+        assert b.current_path.join("helpers.rb").exist?
       end
     end
     
@@ -131,7 +115,13 @@ class TestDirectoryBuilder < Test::Unit::TestCase
         
         b.dir( "fire", "water", "earth", "air" ) do
           assert b.current_path.exist?
-          b.copy %W(Gemfile Gemfile.lock Rakefile).map{ |f| EpubForge.root.join( f ) }
+          b.copy( EpubForge.root.join("Gemfile"), "Gemfile.example" )
+          b.copy( EpubForge.root.join("Gemfile.lock"), "Gemfile.lock.example" )
+          b.copy( EpubForge.root.join("Rakefile"), "Rakefile" )
+          
+          for file in %W(Gemfile.example Gemfile.lock.example Rakefile)
+            assert b.current_path.join(file).exist?, "#{file} should exist"
+          end
         end
       end
     end

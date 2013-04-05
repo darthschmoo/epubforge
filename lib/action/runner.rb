@@ -2,101 +2,60 @@
 
 module EpubForge
   module Action
-    # Directory containing action files
-    class Directory < Utils::FilePath
-      def fetch_loaders
-        self.glob( "**", "*.rb" ).map{ |f| ActionLoader.new(f) }
-      end
-    end
-    
-    # filepath string with metadata, representing an action 
-    # file that can be loaded.
-    
-    class ActionLoader < Utils::FilePath
-      def class_name
-        base = self.basename.to_s.split('.')[0].camelize
-        "EpubForge::Action::#{base}"
-      end
-      
-      def require_action
-        require self
-        raise NameError.new("could not find #{class_name}") unless self.class_loaded?( self.class_name )
-      end
-      
-      def class_loaded?( class_name )
-        begin
-          self.to_class
-          return true
-        rescue NameError
-          return false
-        end
-      end
-      
-      def to_class
-        Kernel.const_get( self.class_name )
-      end
-    end
-    
     class Runner
       include Singleton
-      attr_accessor :actions, :action_directories, :keywords
-      
-      def self.actions_directories
-        @actions_directories ||= []
-        if [].length == 0
-          add_actions_directory( Directory.new( EpubForge.root.join( "actions" ) ) )
-        end
-        
-        @actions_directories
-      end
-      
-      def add_actions_directory( dir )
-        dir = Directory.new( dir )
-        if dir.exist?
-          @actions_directories << dir
-          add_actions_from_one_directory( dir )
-        end
-      end
-
-      def add_actions_from_one_directory( dir )
-        new_files = dir.fetch_loaders
-        @actions_class_files ||= []
-        @actions ||= []
+      attr_accessor :actions, :actions_directories, :keywords, :htmlizers
+            
+      def add_actions( *args )
         @keywords ||= {}
-        @actions_class_files += new_files
+        @actions ||= []
+        @actions_directories ||= []
 
-        for action_loader in new_files
-          action_loader.require_action
-          @actions << action_loader.to_class
-          
-          for keyword in action_loader.to_class.keywords
-            @keywords[keyword] = action_loader.to_class
+        Utils::ActionLoader.require_me( *args )
+
+        new_actions = Utils::ActionLoader.loaded_classes - @actions
+        @actions += new_actions
+        new_directories = Utils::ActionLoader.loaded_directories - @actions_directories
+        @actions_directories += new_directories
+        
+        for action in new_actions
+          for keyword in action.keywords
+            @keywords[keyword] = action
           end
         end
       end
+
+      instance.add_actions( EpubForge.root.join( "actions" ) )
       
       # Find all the actions with keywords that start with the given string.
       # If this results in more than one action being found, the proper
       # response is to panic and flail arms.
       def keyword_to_action( keyword )
+        exact_match = @keywords.keys.select{ |k| k == keyword }
+        
+        return [@keywords[exact_match.first]] if exact_match.length == 1
+        
+        # if no exact match can be found, find a partial match, at the beginning
+        # of the keywords.
         @keywords.keys.select{ |k| k.match(/^#{keyword}/) }.map{ |k| @keywords[k] }.uniq
       end
-
-      def initialize
-        for folder in self.class.actions_directories
-          self.add_actions_from_one_directory( folder )
-        end
+      
+      def add_htmlizers(*args)
+        Utils::HtmlizerLoader.require_me( *args )
       end
-    
+      
+      instance.add_htmlizers( EpubForge.root.join("lib", "page", "htmlizers") )
+      
+      public
       def run( run_description )
-        run_description.klass.new.do( run_description.project, run_description.args )
+        run_description.klass.new.do( run_description.project, *(run_description.args) )
       end
       
       # order:  project_dir(optional), keyword, args
       # If a project_dir is not given, the current working directory is prepended to the arguments list.
       # In some cases -- well, really only 'init', this will be in error.  Because the argument given does
       # not exist yet, it will not recognize the first argument as pointing to a project. 
-      def execute_args( args )
+      def execute_args( *args )
         # first argument is the action's keyword
         # print help message if no keywords given
         keyword = args.shift || "help"     
@@ -111,26 +70,33 @@ module EpubForge
           project_dir = infer_project_directory
         end 
         
-        self.add_actions_directory( project_dir.join( "actions" ) ) if project_dir
-           
+        add_actions( project_dir.join( "actions" ) ) if project_dir
+        add_htmlizers( project_dir.join( "htmlizers" ) ) if project_dir
 
         run_description = RunDescription.new
         run_description.project = Project.new( project_dir ) if project_dir
         run_description.keyword = keyword
         actions = keyword_to_action( keyword )
-
+        
         if actions.length == 1
           run_description.klass = actions.first
           run_description.args = args
           
+          if run_description.klass.project_required? && run_description.project.nil?
+            puts "No project directory was given, and current working directory is not an epubforge project."
+            return false
+          end
+          
           run( run_description )
         elsif actions.length == 0
           puts "Unrecognized keyword <#{keyword}>.  Quitting."
+          false
         else
           puts "Ambiguous keyword <#{keyword}>.  Did you mean...?"
           for action in actions
             puts action.usage
           end
+          false
         end
       end
       

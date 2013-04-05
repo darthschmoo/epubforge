@@ -5,7 +5,7 @@ metadata:
   name: "My Nifty Project"
   author: "My Name"
 
-filename: "file_prefix_for_ebook"
+filename: "my_ebook"
   
 git:
   repo_folder: "/home/username/git"
@@ -21,3 +21,4 @@ git:
 pages:
   - title_page
   - foreword
+

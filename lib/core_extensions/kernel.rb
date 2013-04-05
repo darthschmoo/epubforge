@@ -1,9 +1,9 @@
 module Kernel
 	def puts_nowhere( &block )
-		puts_elsewhere( "/dev/null", &block )
+		collect_stdout( "/dev/null", &block )
 	end
 
-	def puts_elsewhere( dest, &block )
+	def collect_stdout( dest, &block )
 		@puts_nowhere_keep_old_stdout ||= []
 	  @puts_nowhere_keep_old_stdout << $stdout 
 	  if dest.is_a?(String)

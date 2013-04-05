@@ -4,9 +4,9 @@ module EpubForge
       description "The help menu."
       keywords    :help, :"-h", :"--help"
       usage       "#{$PROGRAM_NAME} -h"
-      needs_no_project
+      project_not_required
       
-      def do( project, args )
+      def do( project, *args )
         puts "epubforge [action] [folder]"
         puts "\tActions:"
         for action in Action::Runner.instance.actions

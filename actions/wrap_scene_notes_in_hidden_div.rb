@@ -13,7 +13,7 @@ module EpubForge
       START_OF_SCENE_MARKER = "<!-- EPUBFORGE::SCENE_DESCRIPTION -->\n"
       END_OF_SCENE_MARKER = "<!-- /EPUBFORGE::SCENE_DESCRIPTION -->\n"
       
-      def do( project, args = [] )
+      def do( project, *args )
         @project = project
         
         if args.first == "undo"

@@ -1,0 +1,24 @@
+h1. This is a header
+
+This is a paragraph.
+
+p. This is also a paragraph.
+
+p. _nicely italicized_, @carefully coded@, and *boldly bolded* text.
+
+p(ex). This paragraph has a classname.
+
+<pre>
+    class A
+      def bit( _of )
+        Ruby.code( for, you )
+      end
+    end
+</pre>
+
+# a list
+## with a sublist
+## another item
+
+"A link":http://google.com
+

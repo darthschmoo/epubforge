@@ -23,3 +23,11 @@ def ask question, opts = {}
     answer[0].upcase
   end
 end
+
+def collect_stdout( io = StringIO.new, &block )
+  @old_stdout = $stdout
+  $stdout = io
+  yield
+  $stdout = @old_stdout
+  io.string
+end
