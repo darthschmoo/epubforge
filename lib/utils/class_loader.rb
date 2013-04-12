@@ -29,9 +29,11 @@ module EpubForge
       # Proper naming is very important here.
       def require_me
         begin
-          require self
+          require self.to_s
         rescue NameError => e
           puts "Error encounterd while trying to load #{self.class_name} from #{self}"
+          puts e.message
+          puts e.backtrace.map{|line| "\t#{line}" }
           return false
         end
         
@@ -71,6 +73,7 @@ module EpubForge
               self.require_me( entry )
             end
           else
+            raise "AAAAAH"
             puts "Warning: Could not find file #{loadable} to load htmlizers from."
           end
         end

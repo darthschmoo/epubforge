@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "epubforge"
   gem.homepage = "http://github.com/darth_schmoo/epubforge"
   gem.license = "MIT"
-  gem.summary = %Q{A command-line utility for the electronic publishing of writing projects.}
-  gem.description = %Q{A longer description of your gem}
+  gem.summary = %Q{Write your book in markdown, then do all sorts of increasingly nifty things with it.}
+  gem.description = File.read( File.join( ".", "README.rdoc" ) )
   gem.email = "keeputahweird@gmail.com"
   gem.authors = ["Bryce Anderson"]
   # dependencies defined in Gemfile
@@ -26,17 +26,20 @@ Jeweler::Tasks.new do |gem|
   
   gem.files = Dir.glob( File.join( ".", "lib", "**", "*.rb" ) ) + 
               Dir.glob( File.join( ".", "templates", "**", "*.*" ) ) +
-              Dir.glob( File.join( ".", "test", "**", "*.rb" ) ) +
+              Dir.glob( File.join( ".", "test", "**", "*.*" ) ) +
+              Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +
               Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +
               [ "Gemfile", 
                 "Rakefile", 
                 "LICENSE.txt", 
-                "README.rdoc", 
+                "README.rdoc",
+                "VERSION",
                 File.join( ".", "bin", "epubforge" ) 
               ]
                
-  gem.default_executable = File.join(".", "bin", "epubforge" )
+  gem.default_executable = File.join( ".", "bin", "epubforge" )
 end
+
 Jeweler::RubygemsDotOrgTasks.new
 
 require 'rake/testtask'

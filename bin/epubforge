@@ -7,4 +7,4 @@ epubforge_loader_file  = File.join( exec_is_in, "..", "lib", "epubforge" )
 
 require epubforge_loader_file
   
-EpubForge::Action::Runner.instance.execute_args( *ARGV )
+EpubForge::Action::Runner.instance.exec( *ARGV )

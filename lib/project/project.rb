@@ -1,20 +1,19 @@
 module EpubForge
-  TEMPLATE_DIR = EpubForge.root.join( "templates" )
-  RECIPE_FILE_NAME = "recipe.epubforge"
-  
   class Project
-    attr_reader :target_dir, :recipe_file, :config, :book_dir,
+    SETTINGS_FOLDER = "settings"
+    CONFIG_FILE_NAME = "config"
+    PROJECT_ACTIONS_DIRECTORY = "actions"
+
+    attr_reader :target_dir, :config_file, :config, :book_dir,
                 :notes_dir, :project_basename, :filename_for_epub_book, 
                 :filename_for_mobi_book, :filename_for_epub_notes, 
                 :filename_for_mobi_notes, :actions_dir
                 
     def initialize( target_dir )
-      @target_dir = Utils::FilePath.new( target_dir )
-      @target_dir = target_dir.expand
+      @target_dir = Utils::FilePath.new( target_dir ).expand
       
-      @recipe_file = @target_dir.join( RECIPE_FILE_NAME )
-
-      @config = @recipe_file.exist? ? YAML.load( @recipe_file.read ) : {}
+      @config_file = settings_folder.join( CONFIG_FILE_NAME )
+      @config = @config_file.exist? ? YAML.load( @config_file.read ) : {}
     
       @notes_dir = @config["notes_dir"] || @target_dir.join( "notes" )
       @book_dir  = @config["book_dir"]  || @target_dir.join( "book" )
@@ -34,11 +33,23 @@ module EpubForge
     def self.is_project_dir?( dir )
       return false if dir.nil?
       dir = Utils::FilePath.new( dir )
-      dir.exist? && dir.join( RECIPE_FILE_NAME ).exist? && dir.join( "book" ).directory?
+      dir.exist? && dir.join( SETTINGS_FOLDER, CONFIG_FILE_NAME ).exist? && dir.join( "book" ).directory?
     end
     
     def project_exists?
-      @target_dir.exist? && @target_dir.join( RECIPE_FILE_NAME )
+      @target_dir.exist? && config_file.exist?
+    end
+    
+    def settings_folder(*args)
+      @target_dir.join( SETTINGS_FOLDER ).join(*args)
+    end
+    
+    def config_file
+      settings_folder( CONFIG_FILE_NAME )
+    end
+    
+    def actions_directory
+      settings_folder( ACTIONS_DIRECTORY )
     end
   end
 end

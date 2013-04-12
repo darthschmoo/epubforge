@@ -1,33 +1,60 @@
-def ask question, opts = {}
-  opts[:menu] ||= [["Y", "Yes"], ["N", "No"]]
+module EpubForge
+  module CustomHelpers
+    def ask question, opts = {}
+      opts[:menu] ||= [["Y", "Yes"], ["N", "No"]]
 
-  answer = nil
+      answer = nil
 
-  while answer.nil?
-    menu_string = opts[:menu].map{ |li| "#{li[0]}):\t#{li[1]}"}.join("\n\t")
-    puts "#{question} :\n\t#{ menu_string }"
-    line = Readline.readline(">> ",true).strip.upcase
+      while answer.nil?
+        menu_string = opts[:menu].map{ |li| "#{li[0]}):\t#{li[1]}"}.join("\n\t")
+        puts "#{question} :\n\t#{ menu_string }"
+        line = Readline.readline(">> ",true).strip.upcase
 
-    opts[:menu].each{ |li|
-      if li[0].upcase == line.to_s
-        answer = li
-      end
-    }
+        opts[:menu].each{ |li|
+          if li[0].upcase == line.to_s
+            answer = li
+          end
+        }
     
-    puts "I don't understand that response" if answer.nil?
-  end
+        puts "I don't understand that response" if answer.nil?
+      end
 
-  if opts[:return_value]
-    answer[1]
-  else
-    answer[0].upcase
+      if opts[:return_value]
+        answer[1]
+      else
+        answer[0].upcase
+      end
+    end
+
+    def collect_stdout( dest = StringIO.new, &block )
+              raise ArgumentError.new("No block given.") unless block_given?
+              
+              prior_stdout = $stdout
+              # @epf_prior_stdout_stack ||= []
+              # @epf_prior_stdout_stack << $stdout
+               
+              $stdout = begin
+                          if dest.is_a?( String ) || dest.is_a?( Pathname )
+                            File.open( dest, "a" )
+                          elsif dest.is_a?( IO ) || dest.is_a?( StringIO )
+                            dest
+                          else
+                            raise ArgumentError.new("collect_stdout cannot take a <#{dest.class.name}> as an argument.")
+                          end
+                        end
+            
+              $stdout.sync = true
+              yield
+            
+              $stdout = prior_stdout
+              
+              dest.is_a?( StringIO ) ? dest.string : nil
+            end
+            
+        def collect_stdout( *args, &block )
+          yield
+        end
   end
 end
 
-def collect_stdout( io = StringIO.new, &block )
-  @old_stdout = $stdout
-  $stdout = io
-  yield
-  $stdout = @old_stdout
-  io.string
-end
+EpubForge.extend( EpubForge::CustomHelpers )

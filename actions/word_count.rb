@@ -3,7 +3,7 @@ require 'time'  # for Time.parse
 module EpubForge
   module Action
     class WordCount < AbstractAction
-      WORD_COUNT_FILE = ".word_count.epubforge"
+      WORD_COUNT_FILE = "wordcount"
       
       description "Gives approximate word counts for book chapters and notes."
       keywords    :wc, :count
@@ -11,12 +11,9 @@ module EpubForge
       
       def wc_one_folder( foldername )
         count = 0
-        EpubForge::Epub::Builder::PAGE_FILE_EXTENSIONS.each do |ext|
-          files = foldername.glob( "*.#{ext}" )
-          for file in files
-            count += wc_one_file( file )
-          end      
-        end
+        for file in foldername.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS )
+          count += wc_one_file( file )
+        end      
         
         count
       end
@@ -33,7 +30,7 @@ module EpubForge
       end
       
       def load_word_count_history
-        @wc_yaml = @project.target_dir.join(WORD_COUNT_FILE).touch
+        @wc_yaml = @project.settings_folder( WORD_COUNT_FILE ).touch
         
         if @wc_yaml.empty?
           # pretend that you wrote everything in the last six hours.

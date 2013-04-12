@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'bundler'
 require 'shoulda'
+require 'stringio'
+require 'thor'
 
 begin
   Bundler.setup(:default, :development)

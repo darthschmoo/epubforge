@@ -11,7 +11,8 @@ module EpubForge
       
       def self.create( path, &block )
         builder = self.new( path )
-        yield builder
+        yield builder if block_given?
+        builder
       end
       
       def dir( *args, &block )
@@ -22,26 +23,41 @@ module EpubForge
       
       # block must be given
       def self.tmpdir( &block )
-        Dir.mktmpdir do |dir|
-          self.create( dir ) do |builder|
-            yield builder
+        if block_given?
+          Dir.mktmpdir do |dir|
+            self.create( dir ) do |builder|
+              yield builder
+            end
           end
+        else
+          self.create( Dir.mktmpdir )
         end
       end
       
       # Copies the given source file into a file in the current_path.
       # If a dest_name is given, the new file will be given that name.
-      def copy( src_filepath, dest_name = nil )
-        dest_filepath = dest_name ? @current_path.join(dest_name) : @current_path
-        FileUtils.copy( src_filepath, dest_filepath )
+      def copy( src_filepath, dst_name = nil )
+        dst_filepath = dst_name ? @current_path.join( dst_name ) : @current_path
+        FileUtils.copy( src_filepath, dst_filepath )
       end
       
-      def file( name = nil, &block )
+      def file( name = nil, content = nil, &block )
+        # if name && content
+        #   begin
+        #     f = open_file( name )
+        #     f << content
+        #   ensure
+        #     close_file
+        #   end
         if name
           open_file( name )
+          @current_file << content if content
           if block_given?
-            yield @current_file
-            close_file
+            begin
+              yield @current_file
+            ensure
+              close_file
+            end
           end
         else
           @current_file
@@ -69,6 +85,12 @@ module EpubForge
         end
       end
 
+      def template( src, dst, vars = {} )
+        self.file( dst ) do |f|
+          f << Utils::TemplateEvaluator.new( src, vars ).result
+        end
+      end
+      
       protected
       def make_path
         FileUtils.mkdir_p( @current_path ) unless @current_path.exist?
@@ -76,6 +98,7 @@ module EpubForge
 
       def descend( *args, &block )
         if @current_path.directory?
+          close_file
   	      @paths << @current_path
           @current_path = @paths.last.join( *args )
           make_path

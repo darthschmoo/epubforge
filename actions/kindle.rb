@@ -1,7 +1,7 @@
 module EpubForge
   module Action
     class Kindle < AbstractAction
-      description "Create a .mobi book and try to push it to your Kindle"
+      description "Create a .mobi book and try to push it to your Kindle (conversion requires Calibre)"
       keywords    :kindle, :push, :b2k
       usage       "#{$PROGRAM_NAME} b2k <project_directory>"
       
@@ -30,7 +30,7 @@ module EpubForge
       
       def push_to_device target_mobi
         if File.exist?( File.join( "/Volumes", "Kindle" ) )
-          FileUtils.copy( target_mobi, File.join( "/Volumes", "Kindle", "documents", "fic-mine") )
+          FileUtils.copy( target_mobi, "/".epf_filepath.join( "Volumes", "Kindle", "documents", "fic-mine") )
           puts "installed on Kindle"
         else
           puts "NOT installed on Kindle.  It may not be plugged in."

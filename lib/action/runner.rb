@@ -40,12 +40,18 @@ module EpubForge
         @keywords.keys.select{ |k| k.match(/^#{keyword}/) }.map{ |k| @keywords[k] }.uniq
       end
       
-      def add_htmlizers(*args)
-        Utils::HtmlizerLoader.require_me( *args )
+      def add_htmlizers( htmlizers_file )
+        if htmlizers_file.exist?
+          begin
+            require htmlizers_file.to_s
+          rescue Exception => e
+            puts e.message
+            puts e.backtrace.map{|line| "\t#{line}" }
+            puts "Failed to load htmlizers from project file #{htmlizers_file} Soldiering onward."
+          end
+        end
       end
-      
-      instance.add_htmlizers( EpubForge.root.join("lib", "page", "htmlizers") )
-      
+
       public
       def run( run_description )
         run_description.klass.new.do( run_description.project, *(run_description.args) )
@@ -55,7 +61,7 @@ module EpubForge
       # If a project_dir is not given, the current working directory is prepended to the arguments list.
       # In some cases -- well, really only 'init', this will be in error.  Because the argument given does
       # not exist yet, it will not recognize the first argument as pointing to a project. 
-      def execute_args( *args )
+      def exec( *args )
         # first argument is the action's keyword
         # print help message if no keywords given
         keyword = args.shift || "help"     
@@ -70,11 +76,16 @@ module EpubForge
           project_dir = infer_project_directory
         end 
         
-        add_actions( project_dir.join( "actions" ) ) if project_dir
-        add_htmlizers( project_dir.join( "htmlizers" ) ) if project_dir
 
         run_description = RunDescription.new
-        run_description.project = Project.new( project_dir ) if project_dir
+        
+        if project_dir
+          project = Project.new( project_dir )
+          run_description.project = project
+          add_actions( project.settings_folder( "actions" ) )
+          add_htmlizers( project.settings_folder( "htmlizers.rb" ) )
+        end
+        
         run_description.keyword = keyword
         actions = keyword_to_action( keyword )
         

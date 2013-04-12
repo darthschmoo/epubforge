@@ -123,6 +123,18 @@ class TestDirectoryBuilder < Test::Unit::TestCase
             assert b.current_path.join(file).exist?, "#{file} should exist"
           end
         end
+        
+        directory = ["air", "earth", "water", "fire"]
+        b.dir( *directory ) do
+          b.file( "slipstream.txt", "file contents" )
+        end
+        
+        assert b.current_path.join(*directory).exist?
+        slip = b.current_path.join(*directory).join("slipstream.txt")
+        assert slip.exist?
+        assert_equal false, slip.empty?
+        assert_equal "file contents", b.current_path.join(*directory).join( "slipstream.txt" ).read
+        
       end
     end
   end

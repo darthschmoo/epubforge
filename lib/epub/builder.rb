@@ -3,75 +3,59 @@ XmlBuilder = Builder
 
 module EpubForge
   module Epub
+    PAGE_FILE_EXTENSIONS  = %w(html markdown textile)
+    IMAGE_FILE_EXTENSIONS = %w(jpg png gif)
+
+    MEDIA_TYPES = { "gif" => "image/gif", "jpg" => "image/jpeg", "png" => "image/png",
+                    "css" => "text/css", "js" => "application/javascript", "pdf" => "application/pdf",
+                    "txt" => "text/plain", "xhtml" => "application/xhtml+xml"
+                  }
+    
+    IMAGES_DIR = "".epf_filepath.join( "/", "OEBPS", "Images" )
+    STYLE_DIR  = "".epf_filepath.join( "/", "OEBPS", "Styles" )
+    TEXT_DIR   = "".epf_filepath.join( "/", "OEBPS", "Text" )
+    
     class Builder
-      PAGE_FILE_EXTENSIONS  = %w(html markdown)
-      IMAGE_FILE_EXTENSIONS = %w(jpg png gif)
-  
       attr_reader :stylesheets
       
-      # Class user responsible for giving EpubBuilder the sections in the 
-      # proper order of appearance
-      def initialize book_dir, config = {}    
-        puts "--------------- forgin' #{book_dir} ------------------"
-        @book_dir = book_dir
-        @config = config
-        @config["pages"] ||= {}
+      def initialize project, opts = {}
+        puts "--------------- forgin' #{project.filename_for_epub_book} ------------------"
+        @project = project
+        @config  = project.config
+        @book_dir_short = opts[:book_dir] ? opts[:book_dir].split.last.to_s : "book"
+        @book_dir = @project.target_dir.join( @book_dir_short ).epf_filepath
+        @config = @project.config
+        
+        @config["page_orderer"] = Utils::FileOrderer.new( opts[:page_order] || @config["pages"][@book_dir_short] )
+
         @metadata = @config["metadata"] || {}
-        files = []
         
-        for ext in PAGE_FILE_EXTENSIONS
-          files.concat Dir[ File.join( @book_dir, "*.#{ext}" ) ]
-        end
+        page_files = @book_dir.glob( ext: PAGE_FILE_EXTENSIONS ) 
+        @section_files = @config["page_orderer"].reorder( page_files )
         
-        preordered_files = @config["pages"].map{ |f| File.join( book_dir, "#{f}.markdown" ) }
-
-        files_in_desired_order = preordered_files + ( files - preordered_files )
-
-        images = IMAGE_FILE_EXTENSIONS.inject([]){ |memo, extension|
-          memo.concat Dir[ File.join( @book_dir, "images", "*.#{extension}" ) ]
-        }
-        
-        stylesheets = Dir[ File.join( @book_dir, "stylesheets", "*.css" ) ]
-        @stylesheets = stylesheets.map{ |file| Stylesheet.new( file ) }
-    
-        @section_files = files_in_desired_order
-        @images = images.map{ |img| Image.new(img) }
-    
-        @sections = @section_files.map{ |section|
-          case section
-          when /\.markdown$/
-            Page::Markdown.new( section, @metadata, self ) 
-          when /\.html$/
-            Page::HTML.new( section, @metadata, self )
+        @sections = @section_files.map do |section|
+          case section.to_s.split(".").last
+          when "markdown"
+            Assets::Markdown.new( section, @metadata, self ) 
+          when "html"
+            Assets::HTML.new( section, @metadata, self )
+          when "textile"
+            Assets::Textile.new( section, @metadata, self )
           else
             raise "UNKNOWN EXTENSION TYPE"
           end
-        }
-
-        @build_dirs = []
-        @scratch_dir = File.join("/tmp", "epubforge.#{$$}.#{Time.now.strftime("%Y%m%d.%I%M%S.%s")}.#{Time.now.usec}")
-        puts "SCRATCH_DIR #{@scratch_dir}"
-      end
-  
-      def dir name, &block
-        @build_dirs.push name
-        FileUtils.mkdir( cwd ) unless File.exist?( cwd )
-        yield
-        @build_dirs.pop
-      end
-  
-      def cwd
-        File.join( *@build_dirs )
-      end
-  
-      def writefile content, file
-        File.open( File.join( cwd, file ), "w" ) do |f|
-          f << content
         end
-      end
-  
-      def style
-        " "
+        
+        @sections.each_with_index{ |sec, i| sec.section_number = i }
+
+        images = @book_dir.glob( "images", ext: IMAGE_FILE_EXTENSIONS )
+        @images = images.map{ |img| Assets::Image.new(img) }
+        
+        @stylesheets = @book_dir.glob( "stylesheets", "*.css" ).map do |sheet| 
+          Assets::Stylesheet.new( sheet ) 
+        end
+    
+        @scratch_dir = Dir.mktmpdir.epf_filepath.join( "ebookdir" )
       end
 
       def toc
@@ -114,7 +98,7 @@ module EpubForge
                 b.navLabel do
                   b.text section.title
                 end
-                b.content :src => "Text/section#{sprintf("%04i",i)}.xhtml"
+                b.content :src => section.link
               end
             end
           end
@@ -169,11 +153,10 @@ module EpubForge
             b.dc :creator, {:"opf:role" => "aut"}, @metadata["author"]
             b.dc :language, "en-US"
             b.dc :identifier, {:id => "BookID", "opf:scheme" => "UUID"}, "urn:uuid:58cf98c8-e5be-416d-8ce8-ceae573d5ac5"  #TODO Unique id generator
-            b.dc :rights, "Creative Commons Non-commercial No Derivatives"
-            b.dc :publisher, "Lulu.com"
-            b.dc :date, {:"opf:event" => "original-publication"}, "2012"
-            b.dc :date, {:"opf:event" => "epub-publication"}, "2012"
-            # </metadata>
+            b.dc :rights, @metadata["license"]
+            b.dc :publisher, @metadata["publisher"] || "A Pack of Orangutans"
+            b.dc :date, {:"opf:event" => "original-publication"}, @metadata["original-publication"] || Time.now.year
+            b.dc :date, {:"opf:event" => "epub-publication"}, @metadata["epub-publication"] || Time.now.year
           end
       
           # <manifest>
@@ -182,15 +165,15 @@ module EpubForge
             b.item :id => "ncx", :href => "toc.ncx", :"media-type" => "application/x-dtbncx+xml"
         
             @sections.each_with_index do |section, i|
-              b.item :id => "section#{ sprintf("%04i",i) }.xhtml", :href => "Text/section#{ sprintf("%04i",i) }.xhtml", :"media-type" => "application/xhtml+xml"
+              b.item :id => section.link, :href => section.link, :"media-type" => section.media_type
             end
         
             @images.each do |image|
-              b.item :id => image.name, :href => "Images/#{image.name}.#{image.ext}", :"media-type" => image.media_type
+              b.item :id => image.name, :href => image.link, :"media-type" => image.media_type
             end
             
             @stylesheets.each do |sheet|
-              b.item :id => sheet.name, :href => "Styles/#{sheet.name}", :"media-type" => "text/css"
+              b.item :id => sheet.name, :href => sheet.link, :"media-type" => sheet.media_type
             end
           end
       
@@ -213,54 +196,74 @@ module EpubForge
     
         b.target!.to_s
       end
-
+                
       # zips up contents
       def build
-        FileUtils.rm_r(@scratch_dir) if File.exist?(@scratch_dir)
-        dir @scratch_dir do
-          writefile mimetype, "mimetype"
-  
-          dir "META-INF" do
-            writefile container, "container.xml"
+        Utils::DirectoryBuilder.create( @scratch_dir ) do |build|
+          
+          build.file( "mimetype", mimetype )
+          
+          build.dir( "META-INF" ) do
+            build.file("container.xml", container)
           end
-    
-          dir "OEBPS" do
-            writefile toc, "toc.ncx"
-            writefile content_opf, "content.opf"
-        
-            dir "Text" do
+          
+          build.dir( "OEBPS" ) do
+            build.file( "toc.ncx", toc )
+            build.file( "content.opf", content_opf )
+            
+            build.dir( "Text" ) do
               @sections.each_with_index do |section, i|
-                writefile section.html, "section#{sprintf("%04i",i)}.xhtml"
+                build.file( "section#{sprintf("%04i",i)}.xhtml", wrap_page( section.html ) )
               end
             end
-        
+          
             if @images.length > 0
-              dir "Images" do
-                for f in @images
-                  FileUtils.cp f.file, File.join( cwd, File.basename( f.file ) )
+              build.dir "Images" do
+                for img in @images
+                  build.copy( img.filename )
                 end
               end
             end
-            
-            dir "Styles" do
-              for sheet in @stylesheets
-                writefile sheet.contents, sheet.name
+          
+            unless @stylesheets.epf_blank?
+              build.dir "Styles" do
+                for sheet in @stylesheets
+                  build.file( sheet.name, sheet.contents )
+                end
               end
             end
           end
         end
       end
   
-      def package epub_file
-        epub_file = File.expand_path( epub_file )
-        FileUtils.rm( epub_file ) if File.exist?( epub_file )
-        # `cd #{SCRATCH_DIR} && zip -Xr #{File.join( "..", epub_file)} #{File.join(SCRATCH_DIR, 'mimetype')} #{File.join(SCRATCH_DIR, 'META-INF')}#{File.join(SCRATCH_DIR, 'OEBPS')}`
-        puts "Writing epub directory #{@scratch_dir} to #{epub_file}"
-        `cd #{@scratch_dir} && zip -Xr #{epub_file.epf_backhashed_filename} mimetype META-INF OEBPS`
+      def package epub_filename
+        Packager.new( @scratch_dir, epub_filename ).package
       end
   
       def clean
         # `rm -r #{@scratch_dir}`
+      end
+      
+      protected      
+      def wrap_page content
+        b = XmlBuilder::XmlMarkup.new( :indent => 2)
+        b.instruct! :xml, :encoding => "utf-8", :standalone => "no"
+        b.declare! :DOCTYPE, :html, :PUBLIC, "-//W3C//DTD XHTML 1.1//EN", "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"
+  
+        b.html :xmlns => "http://www.w3.org/1999/xhtml" do
+          b.head do 
+            b.title( @metadata["name"] )
+            for sheet in @stylesheets
+              b.link :href => sheet.link, :media => "screen", :rel => "stylesheet", :type => "text/css"
+            end
+          end
+    
+          b.body do
+            b << content
+          end
+        end
+  
+        b.target!.to_s
       end
     end
   end

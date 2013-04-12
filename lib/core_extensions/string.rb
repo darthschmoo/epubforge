@@ -12,6 +12,10 @@ class String
     self.gsub(" ", "\\ ")  
   end
   
+  def epf_underscorize
+    self.downcase.gsub(/\s+/,"_").gsub(/[\W]/,"")
+  end
+  
   def epf_filepath
     EpubForge::Utils::FilePath.new(self)
   end

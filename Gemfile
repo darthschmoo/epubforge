@@ -11,6 +11,7 @@ source "http://rubygems.org"
 
 gem "builder"
 gem "nokogiri", "~> 1.5"
+gem "thor"
 
 group :development do
   gem "rdoc", "~> 3.12"

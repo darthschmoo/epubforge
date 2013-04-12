@@ -28,8 +28,35 @@ module EpubForge
         self.class.new( self.join("..") ).expand
       end
       
+      # opts:
+      #    :class  =>  [self.class] The class of objects you want returned (String, FilePath, ClassLoader, etc.)
+      #                Should probably be a subclass of FilePath or String.  Class.init must accept a string
+      #                [representing a file path] as the sole argument.
+      #
+      #    :recurse => [false] 
+      #    :ext => []  A single symbol, or a list containing strings/symbols representing file name extensions.
+      #                No leading periods kthxbai.
+      #     
+      #    If opts not given, the user can still do it explicitly with arguments like .glob("**", "*.rb")           
       def glob( *args )
-        Dir.glob( self.join(*args) ).map{ |f| self.class.new(f) }
+        opts = args.last.is_a?(Hash) ? args.pop : {}
+        
+        recurser = opts[:recurse] ? "**" : nil
+        extensions = case opts[:ext]
+        when Symbol, String
+          "*.#{opts[:ext]}"
+        when Array
+          extensions = opts[:ext].map(&:to_s).join(',')
+          "*.{#{extensions}}"
+        when NilClass
+          nil
+        end
+        
+        args += [recurser, extensions]
+        args.compact!
+        
+        opts[:class] ||= self.class
+        Dir.glob( self.join(*args) ).map{ |f| opts[:class].new(f) }
       end
       
       def expand
@@ -79,6 +106,33 @@ module EpubForge
         elsif self.directory?
           self.glob( "**", "*" ).length == 0
         end
+      end
+      
+      def basename_no_ext
+        self.basename.to_s.split(".")[0..-2].join(".").epf_filepath
+      end
+      
+      def without_ext
+        self.gsub(/\.#{self.ext}$/, '')
+      end
+      
+      def ext
+        self.basename.to_s.split(".").last || ""
+      end
+      
+      def relative_to( ancestor_dir )
+        depth = ancestor_dir.to_s.split(File::SEPARATOR).length
+        relative_path = self.to_s.split(File::SEPARATOR)
+        relative_path[(depth)..-1].join(File::SEPARATOR).epf_filepath
+      end
+      
+      def gsub( *args )
+        self.to_s.gsub(*args).epf_filepath
+      end
+      
+      def gsub!( *args )
+        new_str = self.to_s.gsub(*args)
+        self.instance_variable_set(:@path, new_str)
       end
       
       def epf_filepath

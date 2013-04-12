@@ -1,20 +1,13 @@
 module EpubForge
   module Action
-    class AbstractAction
-      attr_reader :description
-      attr_reader :keywords
-      attr_reader :usage
-      
-      def self.description( str = nil )
-        if str
-          @description = str
-        end
-        
+    module SharedActionInterface
+      def description( str = nil )
+        @description = str if str
         @description
       end
       
-      def self.keywords( *args )
-        if args.length == 0
+      def keywords( *args )
+        if args.epf_blank?
           @keywords ||= []
         else 
           @keywords = args.map(&:to_s)
@@ -23,15 +16,12 @@ module EpubForge
         @keywords
       end
       
-      def self.usage( str = nil )
-        if str
-          @usage = str
-        end
-        
+      def usage( str = nil )
+        @usage = str if str
         @usage
       end
       
-      def self.project_required?
+      def project_required?
         @project_required = true if @project_required.nil?
         @project_required
       end
@@ -41,9 +31,13 @@ module EpubForge
       # to keep it from failing out if it can't find an existing project.
       # Used for things like initializing new projects, or... my imagination
       # fails me.
-      def self.project_not_required
+      def project_not_required
         @project_required = false
       end
+    end
+    
+    class AbstractAction
+      extend SharedActionInterface
     end
   end
 end

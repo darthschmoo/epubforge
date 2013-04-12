@@ -1,10 +1,11 @@
 require 'helper'
+require 'thor'
 
 class TestEpubforge < Test::Unit::TestCase  # 
   context "Testing a few basic commands" do
     should "print successfully" do
-      printout = collect_stdout do
-        EpubForge::Action::Runner.instance.execute_args    # empty args, should append --help
+      printout = EpubForge.collect_stdout do
+        EpubForge::Action::Runner.instance.exec    # empty args, should append --help
       end
       
       assert_match /\( wc \| count \)/, printout
@@ -13,8 +14,8 @@ class TestEpubforge < Test::Unit::TestCase  #
     
     should "initialize a new project" do
       create_project do
-        assert @project_dir.join( EpubForge::RECIPE_FILE_NAME ).file?
-        assert @project_dir.join( "actions" ).directory?
+        assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Project::CONFIG_FILE_NAME ).file?
+        assert @project_dir.join( "code", "actions" ).directory?
         assert @project_dir.join( "notes" ).directory?
         assert @project_dir.join( "book", "title_page.markdown" ).file?
         assert @project_dir.join( "book", "images", "cover.png" ).file?
@@ -25,20 +26,20 @@ class TestEpubforge < Test::Unit::TestCase  #
     context "testing a fresh project" do
       should "successfully count ALL THE WORDS!" do
         create_project do
-          collect_stdout do
-            report = EpubForge::Action::Runner.instance.execute_args( "wc", @project_dir )
+          EpubForge.collect_stdout do
+            report = EpubForge::Action::Runner.instance.exec( "wc", @project_dir )
             assert_kind_of Hash, report
-            assert_equal 100, report["Book"]
-            assert_equal 107, report["Today"]
-            assert @project_dir.join(EpubForge::Action::WordCount::WORD_COUNT_FILE).exist?
+            assert_equal 139, report["Book"]
+            assert_equal 146, report["Today"]
+            assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Action::WordCount::WORD_COUNT_FILE ).exist?
           end
         end  
       end
 
       should "fail to count words when no project is given and cwd is not a project" do
         create_project do
-          printout = collect_stdout do
-            assert !EpubForge::Action::Runner.instance.execute_args( "wc" )
+          printout = EpubForge.collect_stdout do
+            assert !EpubForge::Action::Runner.instance.exec( "wc" )
           end
           
           assert_match /No project directory was given/, printout
@@ -48,9 +49,11 @@ class TestEpubforge < Test::Unit::TestCase  #
       
       should "create an .epub file" do
         create_project do
-          printout = collect_stdout do
-            EpubForge::Action::Runner.instance.execute_args( "forge", @project_dir )
+          printout = EpubForge.collect_stdout do
+            DEBUG = 1
+            EpubForge::Action::Runner.instance.exec( "forge", @project_dir )
           end
+          
           assert @project_dir.join( "my_ebook.epub" ).file?
           assert_match /Done building epub/, printout
           
@@ -93,8 +96,9 @@ class TestEpubforge < Test::Unit::TestCase  #
               d.join( "toc.ncx" ) do |toc|
                 assert_equal 1, toc.grep( /DOCTYPE/ ).length
                 assert_equal 4, toc.grep( /meta name=/ ).length
-                assert_equal 4, toc.grep( /Markdown/ ).length
+                assert_equal 5, toc.grep( /xhtml/ ).length
                 assert_equal 1, toc.grep( /My Nifty Project/ ).length
+                assert_equal 9, toc.grep( /content/ ).length
               end
             end
           end
@@ -103,25 +107,46 @@ class TestEpubforge < Test::Unit::TestCase  #
       
       should "create an .epub of the notes directory" do
         create_project do
-          EpubForge::Action::Runner.instance.execute_args( "forge_notes", @project_dir )
+          EpubForge::Action::Runner.instance.exec( "forge_notes", @project_dir )
           
           assert @project_dir.join( "my_ebook.notes.epub" ).file?
           assert ! @project_dir.join( "my_ebook.notes.epub" ).empty?
         end
-        puts "----------------"
       end
     end
     
-    
-    
+    protected
     def create_project( &block )
       EpubForge::Utils::DirectoryBuilder.tmpdir do |d|
         @project_dir = d.current_path.join("project")
-        @printout = collect_stdout do
-          EpubForge::Action::Runner.instance.execute_args( "init", @project_dir )
+        @printout = EpubForge.collect_stdout do
+          EpubForge::Action::Runner.instance.exec( "init", @project_dir, fill_in_project_options )
         end
         yield
       end
+    end
+    
+    def fill_in_project_options( opts = {} )
+      template_options = { 
+        :answers => {
+          :chapter_count => 12,
+          :title => "The Courtesan of Fate",
+          :author => "Wilberforce Poncer",
+          :license => "You Owe Me All the Money Limited License, v. 2.1",
+          :use_git => true,
+          :git => {
+            :repo_id => "abcdef0123456789",
+            :backup_type => "Back up to a remote host.",
+            :host => "myhost.somewhere.com",
+            :user => "andersbr",
+            :repo => "/home/andersbr/git"
+          }
+        }
+      }
+      
+      template_options[:answers].merge(opts)
+      
+      template_options
     end
   end
 end

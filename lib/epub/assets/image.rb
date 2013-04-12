@@ -2,15 +2,15 @@ module EpubForge
   module Epub
     module Assets
       class Image < Asset
-        attr_reader :ext, :file, :name
+        attr_reader :ext, :filename, :name
         def initialize( filename, options = {} )
           @filename = filename.epf_filepath
-          @name     = @filename.basename.split(".")[0..-2].join(".")
+          @name     = @filename.basename.to_s.split(".")[0..-2].join(".")
           @ext      = @filename.extname.gsub( /^\./, "" )
         end
   
         def link
-          IMAGES_DIR.join( @file )
+          IMAGES_DIR.join( @name )
         end
       end
     end
