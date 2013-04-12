@@ -83,7 +83,6 @@ module EpubForge
       def configure_git( opts = {})
         opts[:remote] = "Back up to a remote host."
         opts[:thumb]  = "Back up to an external or thumb drive."
-        debugger
         opts[:backup_type] ||= ask_from_menu( "Where would you like to back up your project to?", 
                                                                                  [ opts[:remote], 
                                                                                    opts[:thumb] ] )

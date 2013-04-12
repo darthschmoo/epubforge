@@ -9,6 +9,7 @@ module EpubForge
       def do( project, *args )
         @project = project
         builder = EpubForge::Epub::Builder.new( @project, :page_order => @project.config["pages"]["book"] )
+
         builder.build
         builder.package( @project.filename_for_epub_book )
         builder.clean

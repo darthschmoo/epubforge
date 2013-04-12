@@ -51,9 +51,9 @@ module EpubForge
               dest.is_a?( StringIO ) ? dest.string : nil
             end
             
-        def collect_stdout( *args, &block )
-          yield
-        end
+        # def collect_stdout( *args, &block )
+        #   yield
+        # end
   end
 end
 

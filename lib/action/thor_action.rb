@@ -9,7 +9,6 @@ module EpubForge
       YELLOW    = Thor::Shell::Color::YELLOW
       GREEN     = Thor::Shell::Color::GREEN
       MAGENTA   = Thor::Shell::Color::MAGENTA
-      GRAY      = "\e[02 "
       ON_YELLOW = Thor::Shell::Color::ON_YELLOW
       ON_BLUE   = Thor::Shell::Color::ON_BLUE
       
@@ -84,6 +83,10 @@ module EpubForge
       
       def git_installed?
         executable_installed?('git')
+      end
+      
+      def ebook_convert_installed?
+        executable_installed?('ebook-convert')
       end
       
       def project_already_gitted?

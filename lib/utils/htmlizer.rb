@@ -84,7 +84,6 @@ module EpubForge
         format = format_from_filename( filename )
       
         for htmlizer in self.handling_format(format)
-          puts "Trying htmlizer #{htmlizer.format} #{htmlizer.group} on #{filename}"
           if result = htmlizer.htmlize( filename, opts )
             return result
           end
@@ -156,7 +155,6 @@ module EpubForge
         exec_string.gsub!( /\{\{x\}\}/, executable  )
         # resulting html
         result = "<!-- generated from #{@format} by htmlizer #{@name} -->\n\n" + `#{exec_string}`
-        puts result
         result
       end
     end

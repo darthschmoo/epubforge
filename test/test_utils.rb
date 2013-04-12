@@ -5,13 +5,24 @@ include EpubForge::Utils
 class TestUtils < Test::Unit::TestCase
   context "testing file orderer" do
     should "accurately sort files in the templates/book dir" do
-      files = EpubForge.root.join( "templates", "default", "book" ).glob( :ext => "markdown" )
-      reordered_files = FileOrderer.new( %w(title_page foreword chapter.* afterword) ).reorder(files).map(&:to_s)
+      files = %W(afterword.markdown 
+                 chapter-0002.markdown 
+                 chapter-0001.markdown 
+                 foreword.markdown 
+                 title_page.markdown 
+                 chapter-0003.markdown)
+                 
+      files_in_expected_order = %W( title_page.markdown 
+                                    foreword.markdown 
+                                    chapter-0001.markdown 
+                                    chapter-0002.markdown 
+                                    chapter-0003.markdown 
+                                    afterword.markdown)
+                                    
+      orderers = %w(title_page foreword chapter-.* afterword)
+      reordered_files = FileOrderer.new( orderers ).reorder( files ).map(&:to_s)
 
-      assert_match /title.*markdown/, reordered_files.first.to_s
-      assert_match /chap.*02.*markdown/, reordered_files[-2].to_s
-      assert_match /afterword\.markdown/, reordered_files.last.to_s
-      
+      assert_equal files_in_expected_order, reordered_files
     end
   end
   

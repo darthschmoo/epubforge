@@ -27,40 +27,26 @@ module EpubForge
           @cli_sequence.default( :remote, remote_host )
           project_url = "ssh://#{remote_host}#{project_name_with_folder}"
         
-          # git_remote_exec( "mkdir -p #{project_name_with_folder}" )
           @cli_sequence.add_remote_command( "mkdir -p #{project_name_with_folder}", "rm -rf #{project_name_with_folder}" )
-          # git_remote_exec( "git --bare init #{project_name_with_folder}" )
           @cli_sequence.add_remote_command( "git --bare init #{project_name_with_folder}" )
-          # git_remote_exec( "touch #{project_name_with_folder.join( @gitconf["repo_id"] )}")
           identifier = project_name_with_folder.join( @gitconf["repo_id"] )
           @cli_sequence.add_remote_command( "touch #{identifier}", "rm #{identifier}" )  # undo isn't needed here, since the directory will be wiped out.
         else
           project_url = "file://#{project_name_with_folder}"
-          # git_local_exec( "mkdir -p #{project_name_with_folder}" )
           @cli_sequence.add_local_command( "mkdir -p #{project_name_with_folder}", "rm -rf #{project_name_with_folder}" )
-          # git_local_exec( "git --bare init #{project_name_with_folder}" )
           @cli_sequence.add_local_command( "git --bare init #{project_name_with_folder}" )
-          # git_local_exec( "touch #{project_name_with_folder.join( @gitconf["repo_id"] )}")
           identifier = project_name_with_folder.join( @gitconf["repo_id"] )
           @cli_sequence.add_local_command( "touch #{identifier}", "rm #{identifier}" )
         end
   
         # running locally
-        # git_local_exec "git init"
-        # git_local_exec "git remote add origin #{project_url}"
-        # git_local_exec "git add ."
-        # git_local_exec "git commit -a -m \"Initial commit\""
-        # git_local_exec "git config branch.master.remote origin"
-        # git_local_exec "git config branch.master.merge refs/heads/master"
-        # git_local_exec "git push origin master" # need to be explicit the first time  
         @cli_sequence.add_local_command "git init", "rm -rf .git"
         @cli_sequence.add_local_command "git remote add origin #{project_url}"
         @cli_sequence.add_local_command "git add ."
         @cli_sequence.add_local_command "git commit -a -m \"Initial commit\""
         @cli_sequence.add_local_command "git config branch.master.remote origin"
         @cli_sequence.add_local_command "git config branch.master.merge refs/heads/master"
-        @cli_sequence.add_local_command "git push origin master" # need to be explicit the first time 
-        @cli_sequence.add_local_command "cat /dev/thisactionwillfail"
+        @cli_sequence.add_local_command "git push origin master"       # need to be explicit about branch the first time
 
         if @cli_sequence.execute
           say_all_is_well( "All done.  The url for this project is #{project_url}" )

@@ -15,11 +15,11 @@ class TestEpubforge < Test::Unit::TestCase  #
     should "initialize a new project" do
       create_project do
         assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Project::CONFIG_FILE_NAME ).file?
-        assert @project_dir.join( "code", "actions" ).directory?
+        assert @project_dir.join( "settings", "actions" ).directory?
         assert @project_dir.join( "notes" ).directory?
         assert @project_dir.join( "book", "title_page.markdown" ).file?
         assert @project_dir.join( "book", "images", "cover.png" ).file?
-        assert_equal 4, @project_dir.join( "book", "chapter.01.markdown" ).grep( /George/ ).length
+        assert_equal 1, @project_dir.join( "book", "chapter-0001.markdown" ).grep( /^Chapter/ ).length
       end
     end
     
@@ -29,8 +29,8 @@ class TestEpubforge < Test::Unit::TestCase  #
           EpubForge.collect_stdout do
             report = EpubForge::Action::Runner.instance.exec( "wc", @project_dir )
             assert_kind_of Hash, report
-            assert_equal 139, report["Book"]
-            assert_equal 146, report["Today"]
+            assert_equal 87, report["Book"]
+            assert_equal 94, report["Today"]
             assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Action::WordCount::WORD_COUNT_FILE ).exist?
           end
         end  
@@ -54,12 +54,12 @@ class TestEpubforge < Test::Unit::TestCase  #
             EpubForge::Action::Runner.instance.exec( "forge", @project_dir )
           end
           
-          assert @project_dir.join( "my_ebook.epub" ).file?
+          assert @ebook_file.file?
           assert_match /Done building epub/, printout
           
           Dir.mktmpdir do |unzip_dir|
             unzip_dir = unzip_dir.epf_filepath
-            `unzip #{@project_dir.join("my_ebook.epub")} -d #{unzip_dir}`
+            `unzip #{@ebook_file} -d #{unzip_dir}`
             
             unzip_dir.join("META-INF") do |d|
               assert d.directory?
@@ -79,7 +79,8 @@ class TestEpubforge < Test::Unit::TestCase  #
                   assert section.file?
                   section_text = section.read
                   assert_match /DOCTYPE/, section_text
-                  assert_match /Then George died/, section_text
+                  assert_match /<title>#{@book_title}<\/title>/, section_text
+                  assert_match /Now go find something else to do/, section_text
                 end
               end
               
@@ -89,16 +90,19 @@ class TestEpubforge < Test::Unit::TestCase  #
               
               d.join( "content.opf" ) do |content|
                 content_text = content.read
-                assert_match /<dc:title>My Nifty Project<\/dc:title>/, content_text
+                assert_match /<dc:title>#{@book_title}<\/dc:title>/, content_text
                 assert_match /Text\/section0003/, content_text
               end
               
               d.join( "toc.ncx" ) do |toc|
                 assert_equal 1, toc.grep( /DOCTYPE/ ).length
                 assert_equal 4, toc.grep( /meta name=/ ).length
-                assert_equal 5, toc.grep( /xhtml/ ).length
-                assert_equal 1, toc.grep( /My Nifty Project/ ).length
-                assert_equal 9, toc.grep( /content/ ).length
+                
+                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "sequence"] ).length + @chapter_count - 1
+                assert_equal section_count, toc.grep( /xhtml/ ).length
+                assert_equal 1, toc.grep( /#{@book_title}/ ).length
+                
+                assert_equal section_count, toc.grep( /<content src=/ ).length
               end
             end
           end
@@ -109,8 +113,8 @@ class TestEpubforge < Test::Unit::TestCase  #
         create_project do
           EpubForge::Action::Runner.instance.exec( "forge_notes", @project_dir )
           
-          assert @project_dir.join( "my_ebook.notes.epub" ).file?
-          assert ! @project_dir.join( "my_ebook.notes.epub" ).empty?
+          assert @notes_file.file?
+          assert ! @notes_file.empty?
         end
       end
     end
@@ -122,6 +126,12 @@ class TestEpubforge < Test::Unit::TestCase  #
         @printout = EpubForge.collect_stdout do
           EpubForge::Action::Runner.instance.exec( "init", @project_dir, fill_in_project_options )
         end
+        
+        @book_title = fill_in_project_options[:answers][:title]
+        @chapter_count = fill_in_project_options[:answers][:chapter_count].to_i
+        @ebook_file = @project_dir.join( @book_title.epf_underscorize + ".epub" )
+        @notes_file = @project_dir.join( @book_title.epf_underscorize + ".notes.epub" )
+        
         yield
       end
     end
@@ -129,7 +139,7 @@ class TestEpubforge < Test::Unit::TestCase  #
     def fill_in_project_options( opts = {} )
       template_options = { 
         :answers => {
-          :chapter_count => 12,
+          :chapter_count => 3,
           :title => "The Courtesan of Fate",
           :author => "Wilberforce Poncer",
           :license => "You Owe Me All the Money Limited License, v. 2.1",

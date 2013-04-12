@@ -3,6 +3,7 @@
 # require 'readline'
 # require 'singleton'
 # require 'builder'
+require 'thor'
 require 'debugger'
 require 'erb'
 require 'singleton'

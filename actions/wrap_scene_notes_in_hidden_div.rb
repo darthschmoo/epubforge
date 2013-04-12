@@ -1,6 +1,6 @@
 module EpubForge
   module Action
-    class WrapSceneNotesInHiddenDiv < AbstractAction
+    class WrapSceneNotesInHiddenDiv < ThorAction
       description "Assumes scenes are in book/scene-XXXX.markdown, and that the scene description is above the first horizontal row (a.k.a. ***** in Markdown)."
       keywords    :wrap_scene_notes
       usage       "#{$PROGRAM_NAME} wrap_scene_notes<project_directory (optional if current directory)>\n\tfollow with 'undo' to reverse transformation."
@@ -13,6 +13,7 @@ module EpubForge
       START_OF_SCENE_MARKER = "<!-- EPUBFORGE::SCENE_DESCRIPTION -->\n"
       END_OF_SCENE_MARKER = "<!-- /EPUBFORGE::SCENE_DESCRIPTION -->\n"
       
+      desc( "do:wrap_scene_notes", "Wrap scene notes (obsolete. Do not use.)")
       def do( project, *args )
         @project = project
         
@@ -23,6 +24,7 @@ module EpubForge
         end
       end
       
+      protected
       def wrap_files
         transform_each_scene do |ft|
           for line in ft.readlines

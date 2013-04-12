@@ -7,15 +7,10 @@ module EpubForge
   
       def do( project, args )
         @project = project
-        project_dir = @project.target_dir
-    
-        NotesToEpub.new.do( @project )
-        @project = EpubForge::Project.new( project_dir )
-    
-        if mobify @project.filename_for_epub_notes, @project.filename_for_mobi_notes
-          puts "Formatted for Kindle (.mobi file)"
-          push_to_device @project.filename_for_mobi_notes
-        end
+        @src_epub = @project.filename_for_epub_notes.epf_filepath
+        @dst_mobi = @project.filename_for_mobi_notes.epf_filepath
+
+        mobify
       end
     end
   end
