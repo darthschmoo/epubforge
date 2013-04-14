@@ -2,27 +2,40 @@ require 'time'  # for Time.parse
 
 module EpubForge
   module Action
-    class WordCount < AbstractAction
+    class WordCount < ThorAction
       WORD_COUNT_FILE = "wordcount"
       
       description "Gives approximate word counts for book chapters and notes."
       keywords    :wc, :count
       usage       "#{$PROGRAM_NAME} count <project_directory>"
       
-      def wc_one_folder( foldername )
-        count = 0
-        for file in foldername.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS )
-          count += wc_one_file( file )
-        end      
+      desc( "do:wc", "Countify words.")
+      def do( project, *args )
+        @project = project
+        @report  = { "Notes" => wc_one_folder( @project.notes_dir ),
+                     "Book"  => wc_one_folder( @project.book_dir  ) }
+
+        load_word_count_history
+        calculate_todays_word_count
+        append_word_count_history( @report )
+        print_report
         
-        count
+        say_all_is_well "Done"
+        @report
+      end
+      
+      protected
+      def wc_one_folder( foldername )
+        foldername.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS ).inject(0) do |count, file|
+          count += wc_one_file( file )
+        end
       end
       
       # I assume the wc executable is more accurate,
       # and I don't know which is faster.
       def wc_one_file( filename )
-        if wc_available
-          result = `#{wc_available} -w #{filename}`
+        if wc_installed?
+          result = `#{wc_installed?.to_s.strip} -w #{filename}`
           $?.success? ? result.to_i : 0
         else
           filename.read.split.length
@@ -30,76 +43,83 @@ module EpubForge
       end
       
       def load_word_count_history
-        @wc_yaml = @project.settings_folder( WORD_COUNT_FILE ).touch
+        @wc_yaml = @project.settings_folder( WORD_COUNT_FILE )
+        @wc_yaml.touch
         
         if @wc_yaml.empty?
           # pretend that you wrote everything in the last six hours.
-          append_word_count_history( {"Notes" => 0, "Book" => 0}, Time.parse( Time.now.strftime("%Y-%m-%d") ) )
+          append_word_count_history( {"Notes" => 0, "Book" => 0}, beginning_of_day )
         end
         
         @history = YAML.load( @wc_yaml.read )
       end
       
-      def append_word_count_history( report, timestamp = Time.now )
-        @wc_yaml.append do |f|
-          f.write "- #{timestamp}:\n"
-          f.write "    Notes: #{report["Notes"]}\n"
-          f.write "    Book:  #{report["Book"]}\n\n"
+      def beginning_of_day
+        @beginning_of_day ||= Time.parse( now.strftime("%Y-%m-%d") )
+        @beginning_of_day
+      end
+      
+      def now
+        @now ||= Time.now
+        @now
+      end
+      
+      def append_word_count_history( report, timestamp = now )
+        unless duplicates_previous_history_item( report )
+          @wc_yaml.append do |f|
+            f.write "- #{timestamp}:\n"
+            f.write "    Notes: #{report["Notes"]}\n"
+            f.write "    Book:  #{report["Book"]}\n\n"
+          end
         end
       end
       
+      def duplicates_previous_history_item( report )
+        last = @history.last
+        prior_report = last.values.last
+        time_of_history_item( last ) > beginning_of_day && 
+          prior_report["Notes"] == report["Notes"] && 
+          prior_report["Book"] == report["Book"]
+      end
       
       # Works under the ginormous assumption that the last word count recorded for the previous
       # day was actually the final count, and every word written since then was written for the
       # current day.  When running for the first time, assumes all prior work was completed the
       # previous day, and falsifies a history to match that assumption.
       def calculate_todays_word_count
-        @now = Time.now
-        @beginning_of_day = Time.parse( @now.strftime("%Y-%m-%d") )
-        while !(@history.epf_blank?) && Time.parse( @history.last.keys.first ) > @beginning_of_day
-          @history.pop
+        prior_day = @history.reverse.find do |history_item|
+          time_of_history_item( history_item ) <= beginning_of_day
         end
-
-        @current = @history.last.values.first
         
-        @report["Today"] = @report["Notes"] + @report["Book"] - @current["Notes"] - @current["Book"]
+        # This should never be nil, but...
+        prior_day = prior_day.nil? ? { "Book" => 0, "Notes" => 0 } : prior_day.values.first
+        
+        @report["Today"] = @report["Notes"] + @report["Book"] - prior_day["Notes"] - prior_day["Book"]
       end
       
-      def wc_available
-        if @wc_exec.nil?
-          which_wc = `which wc`.strip
-          if which_wc.epf_blank?
-            @wc_exec = false
-          else
-            @wc_exec = which_wc.epf_filepath
-          end
+      def time_of_history_item( item )
+        t = item.keys.first
+        t = case( t )
+        when Time
+          t
+        when String
+          Time.parse( t )
+        else
+          raise "I have no idea what time it is."
         end
-        
-        @wc_exec
+      end
+      
+      def wc_installed?
+        executable_installed?( "wc" )
       end
       
       def print_report
-        puts ""
-        puts "Wordcount"
-        puts "---------"
-        puts "Notes: #{@report["Notes"]}"
-        puts "Book:  #{@report["Book"]}"
-        puts "Today: #{@report["Today"]}"
-      end
-      
-      def do( project, *args )
-        @project = project
-        @report  = {}
-        
-        @report["Notes"] = wc_one_folder( @project.notes_dir )
-        @report["Book"]  = wc_one_folder( @project.book_dir )
-        load_word_count_history
-        calculate_todays_word_count
-        append_word_count_history( @report )
-        print_report
-        
-        puts "Done"
-        @report
+        say "", BLUE
+        say "Wordcount", BLUE
+        say "---------", BLUE
+        say "Notes: #{@report["Notes"]}", BLUE
+        say "Book:  #{@report["Book"]}", BLUE
+        say "Today: #{@report["Today"]}", BLUE
       end
     end
   end

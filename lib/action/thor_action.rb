@@ -4,6 +4,8 @@ module EpubForge
       include Thor::Actions
       extend SharedActionInterface
       
+      
+      CLEAR     = Thor::Shell::Color::CLEAR
       RED       = Thor::Shell::Color::RED
       BLUE      = Thor::Shell::Color::BLUE
       YELLOW    = Thor::Shell::Color::YELLOW
@@ -78,7 +80,21 @@ module EpubForge
       end
       
       def executable_installed?( name )
-        `which #{name}`.strip.length > 0
+        name = name.to_sym
+        
+        if @executables.nil?
+          @executables = {}
+          for exe, path in (EpubForge.config[:exe_paths] || {})
+            @executables[exe] = path.epf_filepath
+          end
+        end
+        
+        @executables[name] ||= begin
+          _which = `which #{name}`.strip
+          (_which.length == 0) ? false : _which.epf_filepath
+        end
+          
+        @executables[name]  
       end
       
       def git_installed?

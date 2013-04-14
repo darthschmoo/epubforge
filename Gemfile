@@ -9,9 +9,11 @@ source "http://rubygems.org"
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 
+gem "xdg"
 gem "builder"
 gem "nokogiri", "~> 1.5"
 gem "thor"
+gem "configurator2"
 
 group :development do
   gem "rdoc", "~> 3.12"

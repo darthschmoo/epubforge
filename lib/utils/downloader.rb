@@ -49,27 +49,7 @@ module EpubForge
       #   STDERR.write( "Timeout error connecting to #{@uri.path}" )
       #   STDERR.write( "#{e}\n\n" )
       end
-      
-      # def wget_installed?
-      #   `which wget`.length > 0
-      # end
-      # 
-      # def curl_installed?
-      #   `which curl`.length > 0
-      # end
     end
-    # 
-    # class WgetDownloader < Downloader
-    #   def download( url, io )
-    #     
-    #   end
-    # end
-    # 
-    # class CurlDownloader < Downloader
-    #   def download( url, io )
-    #     
-    #   end
-    # end
   end
 end
 

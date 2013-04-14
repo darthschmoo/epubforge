@@ -24,7 +24,8 @@ Jeweler::Tasks.new do |gem|
   # dependencies defined in Gemfile
   
   
-  gem.files = Dir.glob( File.join( ".", "lib", "**", "*.rb" ) ) + 
+  gem.files = Dir.glob( File.join( ".", "*.rb" ) ) + 
+              Dir.glob( File.join( ".", "lib", "**", "*.rb" ) ) + 
               Dir.glob( File.join( ".", "templates", "**", "*.*" ) ) +
               Dir.glob( File.join( ".", "test", "**", "*.*" ) ) +
               Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +

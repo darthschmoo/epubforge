@@ -1,7 +1,9 @@
 module EpubForge
   class Project
+    include Configurator
+    
     SETTINGS_FOLDER = "settings"
-    CONFIG_FILE_NAME = "config"
+    CONFIG_FILE_NAME = "config.rb"
     PROJECT_ACTIONS_DIRECTORY = "actions"
 
     attr_reader :target_dir, :config_file, :config, :book_dir,
@@ -12,7 +14,7 @@ module EpubForge
     def initialize( target_dir )
       @target_dir = Utils::FilePath.new( target_dir ).expand
       
-      @config_file = settings_folder.join( CONFIG_FILE_NAME )
+      load_configuration
       @config = @config_file.exist? ? YAML.load( @config_file.read ) : {}
     
       @notes_dir = @config["notes_dir"] || @target_dir.join( "notes" )
@@ -25,7 +27,7 @@ module EpubForge
       @filename_for_mobi_notes = @target_dir.join( "#{@config["filename"]}.notes.mobi" )
     end 
     
-    # shorthand string for referring to the project.  Variable-ish, used within filenames
+    # shorthand string that 'names' the project, like the_vampire_of_the_leeky_hills.  Variable-ish, used within filenames
     def default_project_basename
       @config["filename"] || File.split( @target_dir ).last.gsub( /\.epubforge$/ , "" )
     end
@@ -41,7 +43,7 @@ module EpubForge
     end
     
     def settings_folder(*args)
-      @target_dir.join( SETTINGS_FOLDER ).join(*args)
+      @target_dir.join( SETTINGS_FOLDER ).join( *args )
     end
     
     def config_file
@@ -50,6 +52,10 @@ module EpubForge
     
     def actions_directory
       settings_folder( ACTIONS_DIRECTORY )
+    end
+    
+    def load_configuration
+      EpubForge::Utils::Settings.new( self, config_file )
     end
   end
 end

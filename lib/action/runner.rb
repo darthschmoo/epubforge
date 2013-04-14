@@ -26,6 +26,7 @@ module EpubForge
       end
 
       instance.add_actions( EpubForge.root.join( "actions" ) )
+      instance.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
       
       # Find all the actions with keywords that start with the given string.
       # If this results in more than one action being found, the proper

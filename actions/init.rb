@@ -75,7 +75,7 @@ module EpubForge
         @template_name = "default"
         @chapter_count = 20
                 
-        @src_dir = EpubForge::TEMPLATE_DIR.join( @template_name )
+        @src_dir = EpubForge::TEMPLATES_DIR.join( @template_name )
         @dst_dir = @project.target_dir
         
         if @dst_dir.exist?

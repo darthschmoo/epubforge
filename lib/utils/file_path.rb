@@ -64,10 +64,19 @@ module EpubForge
       end
 
       def touch
-        `touch #{self.expand}`
-        raise "File does not exist or is not writable: #{filename}" if $? != 0
-        
-        self
+        FileUtils.touch( self )
+        return true
+      rescue Errno::EACCESS
+        return false
+      end
+      
+      def touch_dir
+        FileUtils.mkdir_p( self )
+        return true
+      rescue Errno::EEXIST
+        return true
+      rescue Errno::EACCESS
+        return false
       end
       
       def write( content = nil, &block )
