@@ -1,7 +1,5 @@
 module EpubForge
   class Project
-    include Configurator
-    
     SETTINGS_FOLDER = "settings"
     CONFIG_FILE_NAME = "config.rb"
     PROJECT_ACTIONS_DIRECTORY = "actions"
@@ -12,29 +10,28 @@ module EpubForge
                 :filename_for_mobi_notes, :actions_dir
                 
     def initialize( target_dir )
-      @target_dir = Utils::FilePath.new( target_dir ).expand
+      @target_dir = FunWith::Files::FilePath.new( target_dir ).expand
       
       load_configuration
-      @config = @config_file.exist? ? YAML.load( @config_file.read ) : {}
-    
-      @notes_dir = @config["notes_dir"] || @target_dir.join( "notes" )
-      @book_dir  = @config["book_dir"]  || @target_dir.join( "book" )
+
+      @notes_dir = config.notes_dir || @target_dir.join( "notes" )
+      @book_dir  = config.book_dir  || @target_dir.join( "book" )
     
       @project_basename = default_project_basename
-      @filename_for_epub_book = @target_dir.join( "#{@config["filename"]}.epub" )
-      @filename_for_mobi_book = @target_dir.join( "#{@config["filename"]}.mobi" )
-      @filename_for_epub_notes = @target_dir.join( "#{@config["filename"]}.notes.epub" )
-      @filename_for_mobi_notes = @target_dir.join( "#{@config["filename"]}.notes.mobi" )
+      @filename_for_epub_book = @target_dir.join( "#{config.filename}.epub" )
+      @filename_for_mobi_book = @target_dir.join( "#{config.filename}.mobi" )
+      @filename_for_epub_notes = @target_dir.join( "#{config.filename}.notes.epub" )
+      @filename_for_mobi_notes = @target_dir.join( "#{config.filename}.notes.mobi" )
     end 
     
     # shorthand string that 'names' the project, like the_vampire_of_the_leeky_hills.  Variable-ish, used within filenames
     def default_project_basename
-      @config["filename"] || File.split( @target_dir ).last.gsub( /\.epubforge$/ , "" )
+      config.filename || @target_dir.basename.to_s.gsub( /\.epubforge$/ , '' )
     end
 
     def self.is_project_dir?( dir )
       return false if dir.nil?
-      dir = Utils::FilePath.new( dir )
+      dir = FunWith::Files::FilePath.new( dir )
       dir.exist? && dir.join( SETTINGS_FOLDER, CONFIG_FILE_NAME ).exist? && dir.join( "book" ).directory?
     end
     
@@ -55,7 +52,7 @@ module EpubForge
     end
     
     def load_configuration
-      EpubForge::Utils::Settings.new( self, config_file )
+      self.install_fwc_config_from_file( config_file )
     end
   end
 end

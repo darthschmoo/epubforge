@@ -7,8 +7,8 @@ module EpubForge
   
       def do( project, args )
         @project = project
-        @src_epub = @project.filename_for_epub_notes.epf_filepath
-        @dst_mobi = @project.filename_for_mobi_notes.epf_filepath
+        @src_epub = @project.filename_for_epub_notes.fwf_filepath
+        @dst_mobi = @project.filename_for_mobi_notes.fwf_filepath
 
         mobify
       end

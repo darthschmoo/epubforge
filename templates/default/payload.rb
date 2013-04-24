@@ -44,7 +44,7 @@ class Payload
   end
   
   def root( dir = nil )
-    @root = dir.epf_filepath if dir
+    @root = dir.fwf_filepath if dir
     @root
   end
   

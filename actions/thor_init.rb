@@ -102,7 +102,7 @@ module EpubForge
         end
         
         # TODO: What if the target file system uses a different file separator?
-        opts[:repo] = opts[:repo].epf_filepath.join( backup_folder_name ) if opts[:repo].is_a?(String)
+        opts[:repo] = opts[:repo].fwf_filepath.join( backup_folder_name ) if opts[:repo].is_a?(String)
         @template_options[:git] = opts
         true
       end
@@ -120,8 +120,8 @@ module EpubForge
           return false
         end
 
-        self.destination_root_filepath = root.epf_filepath
-        debugger if self.destination_root_filepath != root.epf_filepath.expand
+        self.destination_root_filepath = root.fwf_filepath
+        debugger if self.destination_root_filepath != root.fwf_filepath.expand
         
         if self.destination_root_filepath.exist? && 
             (!(self.destination_root_filepath.empty?) || !(self.destination_root_filepath.directory?))

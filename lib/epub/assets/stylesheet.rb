@@ -4,7 +4,7 @@ module EpubForge
       class Stylesheet < Asset
         attr_accessor :filename, :name, :contents
         def initialize( filename )
-          @filename = filename.epf_filepath
+          @filename = filename.fwf_filepath
           @name     = @filename.basename
           @contents = @filename.read
         end

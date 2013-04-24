@@ -68,7 +68,7 @@ module EpubForge
         keyword = args.shift || "help"     
 
         # discover project directory
-        project_dir = args[0] ? args[0].epf_filepath.expand : nil      # able to pass in partial/relative filenames
+        project_dir = args[0] ? args[0].fwf_filepath.expand : nil      # able to pass in partial/relative filenames
         
         if project_dir && Project.is_project_dir?( project_dir )
           args.shift 
@@ -113,7 +113,7 @@ module EpubForge
       end
       
       def infer_project_directory
-        project_dir = Utils::FilePath.cwd
+        project_dir = FunWith::Files::FilePath.cwd
         Project.is_project_dir?( project_dir ) ? project_dir : nil
       end
     end

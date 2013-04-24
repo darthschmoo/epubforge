@@ -66,13 +66,13 @@ module EpubForge
       # hope this doesn't break anything.  Sure enough, it broke a lot of things.
       # def destination_root=( root )
       #   @destination_stack ||= []
-      #   @destination_stack << (root ? root.epf_filepath.expand : '')
+      #   @destination_stack << (root ? root.fwf_filepath.expand : '')
       # end
 
       # Instead, use these instead of destination_root.  Thor gets strings instead of
       # filepaths, like it wants, and I get filepaths instead of strings, like I want.
       def destination_root_filepath
-        self.destination_root.epf_filepath
+        self.destination_root.fwf_filepath
       end
 
       def destination_root_filepath=(root)
@@ -85,13 +85,13 @@ module EpubForge
         if @executables.nil?
           @executables = {}
           for exe, path in (EpubForge.config[:exe_paths] || {})
-            @executables[exe] = path.epf_filepath
+            @executables[exe] = path.fwf_filepath
           end
         end
         
         @executables[name] ||= begin
           _which = `which #{name}`.strip
-          (_which.length == 0) ? false : _which.epf_filepath
+          (_which.length == 0) ? false : _which.fwf_filepath
         end
           
         @executables[name]  

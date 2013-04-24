@@ -6,14 +6,14 @@ module EpubForge
       usage       "#{$PROGRAM_NAME} b2k <project_directory>"
       
       # TODO:  Hard-coded.  Need a global settings file?
-      KINDLE_DEVICE_DIR = "/".epf_filepath.join( "Volumes", "Kindle" )
+      KINDLE_DEVICE_DIR = "/".fwf_filepath.join( "Volumes", "Kindle" )
       KINDLE_PUSH_DIR   = KINDLE_DEVICE_DIR.join("documents", "fic-mine")
       
       desc( "do:kindle", "Turn your .epub file into a .mobi file.  Check to see if your Kindle is connected, then pushes it." )
       def do( project, *args )
         @project = project
-        @src_epub = @project.filename_for_epub_book.epf_filepath
-        @dst_mobi = @project.filename_for_mobi_book.epf_filepath
+        @src_epub = @project.filename_for_epub_book.fwf_filepath
+        @dst_mobi = @project.filename_for_mobi_book.fwf_filepath
 
         mobify
       end

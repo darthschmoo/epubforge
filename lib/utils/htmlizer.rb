@@ -93,7 +93,7 @@ module EpubForge
       end
       
       def self.format_from_filename( filename )
-        ext = filename.epf_filepath.extname.gsub(/^\./, "")
+        ext = filename.fwf_filepath.extname.gsub(/^\./, "")
         ext.epf_blank? ? :unknown : ext.to_sym
       end
       

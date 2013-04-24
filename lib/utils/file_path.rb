@@ -7,7 +7,7 @@ module EpubForge
 
       # args implicitly joined to cwd
       def self.cwd( *args )
-        Dir.pwd.epf_filepath.join( *args )
+        Dir.pwd.fwf_filepath.join( *args )
       end
       
       def self.pwd( *args )
@@ -118,7 +118,7 @@ module EpubForge
       end
       
       def basename_no_ext
-        self.basename.to_s.split(".")[0..-2].join(".").epf_filepath
+        self.basename.to_s.split(".")[0..-2].join(".").fwf_filepath
       end
       
       def without_ext
@@ -132,11 +132,11 @@ module EpubForge
       def relative_to( ancestor_dir )
         depth = ancestor_dir.to_s.split(File::SEPARATOR).length
         relative_path = self.to_s.split(File::SEPARATOR)
-        relative_path[(depth)..-1].join(File::SEPARATOR).epf_filepath
+        relative_path[(depth)..-1].join(File::SEPARATOR).fwf_filepath
       end
       
       def gsub( *args )
-        self.to_s.gsub(*args).epf_filepath
+        self.to_s.gsub(*args).fwf_filepath
       end
       
       def gsub!( *args )
@@ -144,7 +144,7 @@ module EpubForge
         self.instance_variable_set(:@path, new_str)
       end
       
-      def epf_filepath
+      def fwf_filepath
         self
       end
     end

@@ -9,7 +9,7 @@ module EpubForge
       def do( project, *args )
         @project = project
         builder = EpubForge::Epub::Builder.new( @project, book_dir: @project.target_dir.join("notes"), 
-                                                          page_order: @project.config["pages"]["notes"] )
+                                                          page_order: @project.config[:pages][:notes] )
         builder.build
         builder.package( @project.filename_for_epub_notes )
         builder.clean

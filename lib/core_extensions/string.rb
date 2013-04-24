@@ -17,9 +17,9 @@ class String
     self.downcase.gsub(/\s+/,"_").gsub(/[\W]/,"")
   end
   
-  def epf_filepath
-    EpubForge::Utils::FilePath.new(self)
-  end
+  # def fwf_filepath
+  #   EpubForge::FunWith::Files::FilePath.new(self)
+  # end
   
   def to_pathname
     Pathname.new( self )

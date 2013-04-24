@@ -5,7 +5,7 @@ module EpubForge
       
       def initialize( path )
         @paths = []
-        @current_path = path.epf_filepath
+        @current_path = path.fwf_filepath
         make_path
       end
       
@@ -65,14 +65,14 @@ module EpubForge
       end
       
       def current_file
-        @current_file ? FilePath.new( @current_file.path ) : nil
+        @current_file ? FunWith::Files::FilePath.new( @current_file.path ) : nil
       end
       
       # if file not given, the result is appended to the current file.
       def download( url, file = nil )
         if file
-          if file.epf_filepath.relative?
-            file = FilePath.new( @current_path, file )
+          if file.fwf_filepath.relative?
+            file = FunWith::Files::FilePath.new( @current_path, file )
           end
             
           File.open( file, "w" ) do |f|

@@ -1,3 +1,16 @@
+# have to make a tweak to configurator to allow it to work with project class instances
+module Configurator
+  def self.extended(base)
+    if base.respond_to?(:class_eval)
+      base.class_eval { remove_instance_variable(:@configuration) if defined? @configuration }
+    else
+      puts "EXTENDING #{base} AS WE SPEAK"
+      base.instance_variable_set( :@got_extended, true )
+      # base.instance_variable_set( :@configuration, nil )
+    end
+  end
+end
+
 module EpubForge
   module Utils
     class Settings
@@ -11,8 +24,8 @@ module EpubForge
       # Takes a configurator object and (optionally) a settings file to write it out to.
       def initialize( configable, file = nil )
         @configable = configable
-        @file = file.epf_filepath.expand if file
-        configure
+        @file = file.fwf_filepath.expand if file
+        install_configuration
       end
       
       def act_on_string( keqv, set = :set )
@@ -36,7 +49,7 @@ module EpubForge
     
       def write_settings_file( settings_file = nil )
         settings_file ||= @file
-        settings_file = settings_file.epf_filepath
+        settings_file = settings_file.fwf_filepath
         @depth = 0
         str = indented_line("EpubForge::Utils::Settings.thing_to_configure.config do")
         str += write_config( @configable.config.to_hash )
@@ -45,10 +58,10 @@ module EpubForge
       end
 
       protected
-      def configure
-        @configable.extend( Configurator )
-
+      def install_configuration
+        debugger
         self.class.thing_to_configure( @configable )
+        self.class.thing_to_configure.extend( Configurator )
         require @file
         self.class.thing_to_configure( nil )
       end
@@ -83,8 +96,8 @@ module EpubForge
           "#{v}"
         when String
           escape_string( v )
-        when Utils::FilePath
-          escape_string( v ) + ".epf_filepath"
+        when FunWith::Files::FilePath
+          escape_string( v ) + ".fwf_filepath"
         when Array                                 # TODO: Is there a way to enter arrays?
           "[ #{ v.map{ |item| stringify_value(item) }.join(', ') } ]"
         when NilClass

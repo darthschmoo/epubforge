@@ -13,7 +13,9 @@ gem "xdg"
 gem "builder"
 gem "nokogiri", "~> 1.5"
 gem "thor"
-gem "configurator2"
+# gem "configurator2"
+gem 'fun_with_files'
+gem 'fun_with_configurations'
 
 group :development do
   gem "rdoc", "~> 3.12"

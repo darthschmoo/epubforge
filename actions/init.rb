@@ -56,7 +56,6 @@ module EpubForge
         end
         # for entry in @src_dir.glob( "**", "*" )
         #   # `cp -R #{@src_dir} #{@dst_dir}`
-        #   debugger
         #   puts entry
         # end
       end

@@ -58,7 +58,7 @@ class TestEpubforge < Test::Unit::TestCase  #
           assert_match /Done building epub/, printout
           
           Dir.mktmpdir do |unzip_dir|
-            unzip_dir = unzip_dir.epf_filepath
+            unzip_dir = unzip_dir.fwf_filepath
             `unzip #{@ebook_file} -d #{unzip_dir}`
             
             unzip_dir.join("META-INF") do |d|

@@ -9,7 +9,7 @@ module EpubForge
       def do( project, *args )
         @project = project
         @conf = @project.config
-        @gitconf = @conf["git"]
+        @gitconf = @conf.git
         @cli_sequence = CliSequence.new
         @cli_sequence.default( :verbose, true )
         @cli_sequence.default( :local_dir, @project.target_dir )
@@ -20,7 +20,7 @@ module EpubForge
           return false
         end
 
-        project_name_with_folder = @gitconf["repo_folder"].epf_filepath.expand
+        project_name_with_folder = @gitconf["repo_folder"].fwf_filepath.expand
         
         if @gitconf["remote_host"]
           remote_host = "#{@gitconf['remote_user']}@#{@gitconf['remote_host']}"

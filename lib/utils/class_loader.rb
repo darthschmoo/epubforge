@@ -2,7 +2,7 @@ module EpubForge
   module Utils
     # filepath string with metadata, representing a class 
     # file that can be loaded.
-    class ClassLoader < FilePath
+    class ClassLoader < FunWith::Files::FilePath
       def self.loaded_classes
         @loaded_classes ||= []
       end

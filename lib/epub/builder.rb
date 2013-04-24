@@ -11,9 +11,9 @@ module EpubForge
                     "txt" => "text/plain", "xhtml" => "application/xhtml+xml"
                   }
     
-    IMAGES_DIR = "".epf_filepath.join( "/", "OEBPS", "Images" )
-    STYLE_DIR  = "".epf_filepath.join( "/", "OEBPS", "Styles" )
-    TEXT_DIR   = "".epf_filepath.join( "/", "OEBPS", "Text" )
+    IMAGES_DIR = "".fwf_filepath.join( "/", "OEBPS", "Images" )
+    STYLE_DIR  = "".fwf_filepath.join( "/", "OEBPS", "Styles" )
+    TEXT_DIR   = "".fwf_filepath.join( "/", "OEBPS", "Text" )
     
     class Builder
       attr_reader :stylesheets
@@ -23,7 +23,7 @@ module EpubForge
         @project = project
         @config  = project.config
         @book_dir_short = opts[:book_dir] ? opts[:book_dir].split.last.to_s : "book"
-        @book_dir = @project.target_dir.join( @book_dir_short ).epf_filepath
+        @book_dir = @project.target_dir.join( @book_dir_short ).fwf_filepath
         @config = @project.config
         
         @config["page_orderer"] = Utils::FileOrderer.new( opts[:page_order] || @config["pages"][@book_dir_short] )
@@ -55,7 +55,7 @@ module EpubForge
           Assets::Stylesheet.new( sheet ) 
         end
     
-        @scratch_dir = Dir.mktmpdir.epf_filepath.join( "ebookdir" )
+        @scratch_dir = Dir.mktmpdir.fwf_filepath.join( "ebookdir" )
       end
 
       def toc
