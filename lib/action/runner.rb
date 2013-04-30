@@ -3,59 +3,26 @@
 module EpubForge
   module Action
     class Runner
-      include Singleton
-      attr_accessor :actions, :actions_directories, :keywords, :htmlizers
+      attr_accessor :actions_lookup
+      def initialize
+        reset
+      end
+      
+      def reset
+        @args = []
+        @run_description = RunDescription.new
+        @actions_lookup = ActionsLookup.new
+        @actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
+        @actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
+      end
             
-      def add_actions( *args )
-        @keywords ||= {}
-        @actions ||= []
-        @actions_directories ||= []
-
-        Utils::ActionLoader.require_me( *args )
-
-        new_actions = Utils::ActionLoader.loaded_classes - @actions
-        @actions += new_actions
-        new_directories = Utils::ActionLoader.loaded_directories - @actions_directories
-        @actions_directories += new_directories
-        
-        for action in new_actions
-          for keyword in action.keywords
-            @keywords[keyword] = action
-          end
+      def run
+        if @run_description.runnable?
+          @run_description.klass.new.do( @run_description.project, *(@run_description.args) )
+        else
+          puts "Error(s) trying to complete the requested action:"
+          puts @run_description.errors.join("\n")
         end
-      end
-
-      instance.add_actions( EpubForge.root.join( "actions" ) )
-      instance.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
-      
-      # Find all the actions with keywords that start with the given string.
-      # If this results in more than one action being found, the proper
-      # response is to panic and flail arms.
-      def keyword_to_action( keyword )
-        exact_match = @keywords.keys.select{ |k| k == keyword }
-        
-        return [@keywords[exact_match.first]] if exact_match.length == 1
-        
-        # if no exact match can be found, find a partial match, at the beginning
-        # of the keywords.
-        @keywords.keys.select{ |k| k.match(/^#{keyword}/) }.map{ |k| @keywords[k] }.uniq
-      end
-      
-      def add_htmlizers( htmlizers_file )
-        if htmlizers_file.exist?
-          begin
-            require htmlizers_file.to_s
-          rescue Exception => e
-            puts e.message
-            puts e.backtrace.map{|line| "\t#{line}" }
-            puts "Failed to load htmlizers from project file #{htmlizers_file} Soldiering onward."
-          end
-        end
-      end
-
-      public
-      def run( run_description )
-        run_description.klass.new.do( run_description.project, *(run_description.args) )
       end
       
       # order:  project_dir(optional), keyword, args
@@ -63,58 +30,92 @@ module EpubForge
       # In some cases -- well, really only 'init', this will be in error.  Because the argument given does
       # not exist yet, it will not recognize the first argument as pointing to a project. 
       def exec( *args )
+        # remove project from arguments
+        @args = args
         # first argument is the action's keyword
         # print help message if no keywords given
-        keyword = args.shift || "help"     
-
-        # discover project directory
-        project_dir = args[0] ? args[0].fwf_filepath.expand : nil      # able to pass in partial/relative filenames
+        parse_args
         
-        if project_dir && Project.is_project_dir?( project_dir )
-          args.shift 
-        else
-          # see if command is given from inside a project directory.
-          project_dir = infer_project_directory
-        end 
+        # finish setting up run_description
+        @run_description.args = @args
         
-
-        run_description = RunDescription.new
+        run
+      end
+    
+    
+      # The priority for the project directory
+      # 1) explicitly stated directory  --project=/home/andersbr/writ/fic/new_project
+      # 2) the current working directory (if it's an existing project)
+      # 3) the final arg
+      #
+      # At this point, 
+      protected
+      def parse_args
+        @run_description = RunDescription.new
+        @run_description.keyword = @args.shift || "help"
         
-        if project_dir
-          project = Project.new( project_dir )
-          run_description.project = project
-          add_actions( project.settings_folder( "actions" ) )
-          add_htmlizers( project.settings_folder( "htmlizers.rb" ) )
+        existing_project = false
+        project_dir = get_explicit_project_option( @args )
+        
+        # see if the last argument is a project directory
+        unless project_dir || @args.length == 0
+          last_arg = @args.pop
+          unless project_dir = ( Project.is_project_dir?( last_arg ) )
+            @args.push( last_arg )
+          end
         end
         
-        run_description.keyword = keyword
-        actions = keyword_to_action( keyword )
-        
-        if actions.length == 1
-          run_description.klass = actions.first
-          run_description.args = args
-          
-          if run_description.klass.project_required? && run_description.project.nil?
-            puts "No project directory was given, and current working directory is not an epubforge project."
-            return false
+        # see if current working directory is a project directory
+        unless project_dir 
+          cwd = FunWith::Files::FilePath.cwd
+          if Project.is_project_dir?( cwd )
+            project_dir = cwd
           end
-          
-          run( run_description )
+        end
+        
+        # At this point, if we're going to find an existing project directory, we'll have found it by now.
+        # Time to load the actions and determine whether the keyword matches an existing action
+        if project_dir && Project.is_project_dir?( project_dir )
+          existing_project = true
+          @run_description.project = Project.new( project_dir )
+          @actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
+          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
+        end
+        
+        map_keyword_to_action
+        
+        if !existing_project && @run_description.klass.project_required?
+          @run_description.errors << "Could not find a project directory, but the action #{@run_description.klass} requires one. Current directory is not an epubforge project."
+        end
+      end
+      
+      def map_keyword_to_action
+        actions = actions_lookup.keyword_to_action( @run_description.keyword )
+
+        if actions.length == 1
+          @run_description.klass = actions.first
         elsif actions.length == 0
-          puts "Unrecognized keyword <#{keyword}>.  Quitting."
+          @run_description.errors << "Unrecognized keyword <#{keyword}>.  Quitting."
           false
         else
-          puts "Ambiguous keyword <#{keyword}>.  Did you mean...?"
-          for action in actions
-            puts action.usage
-          end
+          @run_description.errors << "Ambiguous keyword <#{keyword}>.  Did you mean...?\n#{actions.map(&:usage).join('\n')}"
           false
         end
       end
       
-      def infer_project_directory
-        project_dir = FunWith::Files::FilePath.cwd
-        Project.is_project_dir?( project_dir ) ? project_dir : nil
+      def get_explicit_project_option( args )
+        proj_opt_regex = /^--project=/
+        
+        proj_opt = args.find do |arg|
+          arg.is_a?(String) && arg.match( proj_opt_regex )
+        end
+      
+        if proj_opt
+          args.delete( proj_opt )
+          proj_opt.gsub( proj_opt, '' ).fwf_filepath
+        else
+          false
+        end
       end
     end
   end

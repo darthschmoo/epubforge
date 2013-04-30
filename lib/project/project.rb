@@ -18,10 +18,10 @@ module EpubForge
       @book_dir  = config.book_dir  || @target_dir.join( "book" )
     
       @project_basename = default_project_basename
-      @filename_for_epub_book = @target_dir.join( "#{config.filename}.epub" )
-      @filename_for_mobi_book = @target_dir.join( "#{config.filename}.mobi" )
-      @filename_for_epub_notes = @target_dir.join( "#{config.filename}.notes.epub" )
-      @filename_for_mobi_notes = @target_dir.join( "#{config.filename}.notes.mobi" )
+      @filename_for_epub_book = @target_dir.join( "#{default_project_basename}.epub" )
+      @filename_for_mobi_book = @target_dir.join( "#{default_project_basename}.mobi" )
+      @filename_for_epub_notes = @target_dir.join( "#{default_project_basename}.notes.epub" )
+      @filename_for_mobi_notes = @target_dir.join( "#{default_project_basename}.notes.mobi" )
     end 
     
     # shorthand string that 'names' the project, like the_vampire_of_the_leeky_hills.  Variable-ish, used within filenames
@@ -29,10 +29,12 @@ module EpubForge
       config.filename || @target_dir.basename.to_s.gsub( /\.epubforge$/ , '' )
     end
 
+    # TODO: should test be more definitive?
     def self.is_project_dir?( dir )
+      dir = dir && (dir.is_a?(String) || dir.is_a?(FunWith::Files::FilePath)) ? dir.fwf_filepath : nil
       return false if dir.nil?
-      dir = FunWith::Files::FilePath.new( dir )
-      dir.exist? && dir.join( SETTINGS_FOLDER, CONFIG_FILE_NAME ).exist? && dir.join( "book" ).directory?
+      
+      ( dir.exist? && dir.join( SETTINGS_FOLDER, CONFIG_FILE_NAME ).exist? && dir.join( "book" ).directory? ) ? dir : false
     end
     
     def project_exists?
@@ -40,7 +42,8 @@ module EpubForge
     end
     
     def settings_folder(*args)
-      @target_dir.join( SETTINGS_FOLDER ).join( *args )
+      @settings_folder ||= @target_dir.join( SETTINGS_FOLDER )
+      @settings_folder.join( *args )
     end
     
     def config_file
@@ -49,6 +52,10 @@ module EpubForge
     
     def actions_directory
       settings_folder( ACTIONS_DIRECTORY )
+    end
+    
+    def chapters
+      @book_dir.glob("chapter-????.*")
     end
     
     def load_configuration

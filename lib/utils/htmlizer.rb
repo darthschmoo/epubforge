@@ -1,90 +1,78 @@
 module EpubForge
   module Utils
+    
+    # Htmlizer coordinates the discovery, selection, and running of HtmlTranslators.
+    # It can be handed basically any supported filetype (markdown, textile, txt), and 
+    # hand back an HTML translation of the file.
     class Htmlizer
-      GROUP_NAMES = [:preferred, :user, :default, :fallback]
-      
-      def self.init_class
+      include Singleton
+
+      def setup_once
+        return false if @already_set_up 
+        @already_set_up = true
         @exec_location = {}
         
-        @htmlizers = {} 
+        @translator_queue = HtmlTranslatorQueue.new
         
-        @htmlizers[:all] = []
-        @htmlizers[:named] = {}
+        add_htmlizers( EpubForge.root( 'config', 'htmlizers.rb' ) )
+        add_htmlizers( EpubForge::USER_SETTINGS.join( 'htmlizers.rb' ) )
+        
+        @already_set_up
       end
-      init_class
-      
-      def self.location( name, path = nil )
+            
+      public
+      def location( name, path = nil )
         @exec_location[name] = path if path
         @exec_location[name]
       end
-      
-      def self.htmlizers
-        @htmlizers
-      end
-      
-      # Returns them in a rough priority order, user-defined ones first.
-      def self.handling_format( requested_format )
-        htmlizers = GROUP_NAMES.map{ |group|
-          (@htmlizers.keys - [:all, :named]).map do |format|
-            htmlizers = @htmlizers[format][group]
-            htmlizers ? htmlizers.select{|html| html.handles_format?(requested_format) } : []
-          end
-        }
-        
-        htmlizers.flatten
-      end
-      
-      def self.named( name )
-        @htmlizers[:named][name]
-      end
-      
-      # def self.htmlizer( fmt, name = :any )
-      #   htmlizers = @htmlizers[fmt]
-      #   if name == :any
-      #     htmlizers.values.flatten
-      #   else
-      #     htmlizers[name] || []
-      #   end
+
+      # Commenting out for the moment.  Philosophically, maybe it shouldn't provide access to individual translators.
+      # def translators_named( name )
+      #   @translator_queue[:named][name]
       # end
+
       
       def self.define( &block )
-        htmlizer = self.new
+        htmlizer = HtmlTranslator.new
         yield htmlizer
-        
-        categorize( htmlizer )
+        self.instance.categorize( htmlizer )
       end
       
-      protected
-      def self.categorize( htmlizer )
-        @htmlizers[:all] << htmlizer
-        @htmlizers[:named][htmlizer.name] = htmlizer if htmlizer.name
-
-        @htmlizers[htmlizer.format] ||= {}
-        @htmlizers[htmlizer.format][htmlizer.group] ||= []
-        @htmlizers[htmlizer.format][htmlizer.group] << htmlizer
+      def categorize( htmlizer )
+        @translator_queue.categorize( htmlizer )
       end
+      
+      def add_htmlizers( htmlizers_file )
+        if htmlizers_file.exist?
+          begin
+            require htmlizers_file.to_s
+          rescue Exception => e
+            puts e.message
+            puts e.backtrace.map{|line| "\t#{line}" }
+            puts "Failed to load htmlizers from project file #{htmlizers_file} Soldiering onward."
+          end
+        end
+      end
+
       
       # available options
       # :htmlizer => the sym for the requested htmlizer.  
       # :opts     => a string representing options to execute cmd with
-      public
-      def self.htmlize( filename, opts = {} )
-        htmlizer  = opts[:htmlizer] 
-        htmlizer  = @htmlizers[:named][htmlizer]
+      def translate( filename, opts = {} )
+        translator  = opts[:translator]
+        translator  = @translator_queue.named( translator ) if translator.is_a?( Symbol )
         opts      = opts[:opts] || ""
         
-        if htmlizer
-          if result = htmlizer.htmlize( filename, {opts: opts } )
+        if translator
+          if result = translator.translate( filename, {opts: opts } )
             return result
           else
             puts "Named Htmlizer #{htmlizer} did not return html. Falling back on other htmlizers"
           end
         end
-        # 
-        format = format_from_filename( filename )
-      
-        for htmlizer in self.handling_format(format)
-          if result = htmlizer.htmlize( filename, opts )
+
+        for translator in @translator_queue
+          if result = translator.translate( filename, opts )
             return result
           end
         end
@@ -96,67 +84,9 @@ module EpubForge
         ext = filename.fwf_filepath.extname.gsub(/^\./, "")
         ext.epf_blank? ? :unknown : ext.to_sym
       end
-      
-      def initialize
-        group( :user )
-        opts( "" )
-      end
-      
-      def name( n = nil )
-        @name = n if n
-        @name
-      end
-
-      def group( g = nil )
-        if g
-          raise "group must be one of the following symbols: #{GROUP_NAMES.inspect}" unless GROUP_NAMES.include?(g)
-          @group = g 
-        end
-        
-        @group
-      end
-      
-      def executable executable_name = nil
-        if executable_name
-          @executable_name = self.class.location( executable_name ) || `which #{executable_name}`.strip
-        end
-        @executable_name || ""
-      end
-      
-      def format f = nil
-        @format = f if f
-        @format
-      end
-      
-      def cmd c = nil
-        @cmd = c if c
-        @cmd
-      end
-      
-      def opts o = nil
-        @opts = o if o
-        @opts
-      end
-      
-      def installed?
-        executable.length > 0
-      end
-      
-      def handles_format?( f )
-        @format == f && installed?
-      end
-      
-      def htmlize( filename, opts = "" )
-        return false unless installed?
-        
-        exec_string = cmd.gsub( /\{\{f\}\}/, filename.to_s )
-        opts = @opts if opts.epf_blank?
-        exec_string.gsub!( /\{\{o\}\}/, opts  )
-        exec_string.gsub!( /\{\{x\}\}/, executable  )
-        # resulting html
-        result = "<!-- generated from #{@format} by htmlizer #{@name} -->\n\n" + `#{exec_string}`
-        result
-      end
     end
+    
+    Htmlizer.instance.setup_once
   end
 end
+

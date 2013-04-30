@@ -10,7 +10,7 @@ module EpubForge
       def do( project, *args )
         say_instruction "epubforge [action] [folder]"
         say_instruction "\tActions:"
-        for action in Action::Runner.instance.actions
+        for action in Action::Runner.new.actions_lookup.actions
           say_instruction "\t( #{action.keywords.join(" | ")} ) :"
           say_instruction "\t\tDescription: #{action.description}"
           say_instruction "\t\tUsage:       #{action.usage}\n"

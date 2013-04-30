@@ -24,6 +24,9 @@ require 'fun_with_configurations'
 EpubForge = Module.new
 EpubForge::DEBUG = false
 
+# EpubForge.root responds with the gem directory
+FunWith::Files::RootPath.rootify( EpubForge, __FILE__.fwf_filepath.dirname.up )
+
 def debugger?
   debugger if debugging?
 end
@@ -34,7 +37,6 @@ end
 
 
 require_relative 'core_extensions/array'
-# require_relative 'core_extensions/file'
 require_relative 'core_extensions/kernel'
 require_relative 'core_extensions/nil_class'
 require_relative 'core_extensions/object'
@@ -44,21 +46,15 @@ require_relative 'core_extensions/string'
 require_relative 'utils/directory_builder'
 require_relative 'utils/downloader'
 require_relative 'utils/file_orderer'
-# require_relative 'utils/file_path'
 require_relative 'utils/misc'
-# require_relative 'utils/root_path'
-# require_relative 'utils/settings'
 require_relative 'utils/class_loader'
 require_relative 'utils/action_loader'
-require_relative 'utils/htmlizer'
-require_relative 'utils/default_htmlizers'
 require_relative 'utils/template_evaluator'
 
 
-# EpubForge.root responds with the gem directory
-FunWith::Files::RootPath.rootify( EpubForge, __FILE__.fwf_filepath.dirname.up )
 
 module EpubForge
+  ACTIONS_DIR  = EpubForge.root.join( "config", "actions" )
   TEMPLATES_DIR  = EpubForge.root.join( "templates" )
   USER_SETTINGS = XDG['CONFIG_HOME'].to_s.fwf_filepath.join( "epubforge" )
   USER_GLOBALS_FILE = USER_SETTINGS.join( "globals.rb" )
@@ -73,10 +69,14 @@ EpubForge.install_fwc_config_from_file( EpubForge::USER_GLOBALS_FILE )
 EpubForge.config.activation_key = rand(20**32).to_s(16).gsub(/(.{5})/, '\1-')[0..-2]
 puts "Thank you for registering your copy of the epubforge gem.  Please write down your activation key (#{EpubForge.config.activation_key}) in case you need to call customer service."
 
-require_relative 'action/abstract_action'
+require_relative 'utils/html_translator'
+require_relative 'utils/html_translator_queue'
+require_relative 'utils/htmlizer'
+
 require_relative 'action/file_transformer'
 require_relative 'action/run_description'
 require_relative 'action/thor_action'
+require_relative 'action/actions_lookup'
 require_relative 'action/runner'
 require_relative 'action/cli_command'
 require_relative 'action/cli_sequence'

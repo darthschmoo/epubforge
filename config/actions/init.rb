@@ -1,7 +1,7 @@
 module EpubForge
   module Action
-    class ThorInit < ThorAction
-      keywords  :init, :thorinit, :initialize, :new
+    class Init < ThorAction
+      keywords  :init, :initialize, :new
       project_not_required
       
       desc("do:init", "create a new epubforge project")

@@ -5,7 +5,7 @@ class TestEpubforge < Test::Unit::TestCase  #
   context "Testing a few basic commands" do
     should "print successfully" do
       printout = EpubForge.collect_stdout do
-        EpubForge::Action::Runner.instance.exec    # empty args, should append --help
+        EpubForge::Action::Runner.new.exec    # empty args, should append --help
       end
       
       assert_match /\( wc \| count \)/, printout
@@ -27,7 +27,7 @@ class TestEpubforge < Test::Unit::TestCase  #
       should "successfully count ALL THE WORDS!" do
         create_project do
           EpubForge.collect_stdout do
-            report = EpubForge::Action::Runner.instance.exec( "wc", @project_dir )
+            report = EpubForge::Action::Runner.new.exec( "wc", @project_dir )
             assert_kind_of Hash, report
             assert_equal 87, report["Book"]
             assert_equal 94, report["Today"]
@@ -35,23 +35,22 @@ class TestEpubforge < Test::Unit::TestCase  #
           end
         end  
       end
-
+    
       should "fail to count words when no project is given and cwd is not a project" do
         create_project do
           printout = EpubForge.collect_stdout do
-            assert !EpubForge::Action::Runner.instance.exec( "wc" )
+            assert !EpubForge::Action::Runner.new.exec( "wc" )
           end
           
-          assert_match /No project directory was given/, printout
-          assert_match /current working directory is not an epubforge project/, printout
+          assert_match /Error\(s\) trying to complete the requested action/, printout
+          assert_match /Current directory is not an epubforge project/, printout
         end  
       end
       
       should "create an .epub file" do
         create_project do
           printout = EpubForge.collect_stdout do
-            DEBUG = 1
-            EpubForge::Action::Runner.instance.exec( "forge", @project_dir )
+            EpubForge::Action::Runner.new.exec( "forge", @project_dir )
           end
           
           assert @ebook_file.file?
@@ -111,21 +110,24 @@ class TestEpubforge < Test::Unit::TestCase  #
       
       should "create an .epub of the notes directory" do
         create_project do
-          EpubForge::Action::Runner.instance.exec( "forge_notes", @project_dir )
+          EpubForge::Action::Runner.new.exec( "forge_notes", @project_dir )
           
           assert @notes_file.file?
           assert ! @notes_file.empty?
         end
       end
     end
-    
+        
     protected
     def create_project( &block )
       EpubForge::Utils::DirectoryBuilder.tmpdir do |d|
         @project_dir = d.current_path.join("project")
         @printout = EpubForge.collect_stdout do
-          EpubForge::Action::Runner.instance.exec( "init", @project_dir, fill_in_project_options )
+          EpubForge::Action::Runner.new.exec( "init", @project_dir, fill_in_project_options )
         end
+        
+        assert @project_dir.directory?, "Project directory doesn't exist.  Cannot proceed."
+        
         
         @book_title = fill_in_project_options[:answers][:title]
         @chapter_count = fill_in_project_options[:answers][:chapter_count].to_i

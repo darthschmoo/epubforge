@@ -29,7 +29,7 @@ Jeweler::Tasks.new do |gem|
               Dir.glob( File.join( ".", "templates", "**", "*.*" ) ) +
               Dir.glob( File.join( ".", "test", "**", "*.*" ) ) +
               Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +
-              Dir.glob( File.join( ".", "actions", "**", "*.rb" ) ) +
+              Dir.glob( File.join( ".", "config", "**", "*.rb" ) ) +
               [ "Gemfile", 
                 "Rakefile", 
                 "LICENSE.txt", 

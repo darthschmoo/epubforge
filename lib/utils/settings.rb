@@ -59,7 +59,6 @@ module EpubForge
 
       protected
       def install_configuration
-        debugger
         self.class.thing_to_configure( @configable )
         self.class.thing_to_configure.extend( Configurator )
         require @file

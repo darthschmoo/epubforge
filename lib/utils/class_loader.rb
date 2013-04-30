@@ -73,8 +73,8 @@ module EpubForge
               self.require_me( entry )
             end
           else
-            raise "AAAAAH"
             puts "Warning: Could not find file #{loadable} to load htmlizers from."
+            raise "AAAH"
           end
         end
       end

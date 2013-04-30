@@ -13,7 +13,7 @@ module EpubForge
           @original_file = file
           @dest_extension = "xhtml"
 
-          @html = Utils::Htmlizer.htmlize( file )
+          @html = Utils::Htmlizer.instance.translate( file )
           @title = File.basename( file ).split(".")[0..-2].map(&:capitalize).join(" : ")
           @content = ""
           puts "Initialized #{file} with title [#{@title}]"

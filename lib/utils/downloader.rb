@@ -45,6 +45,9 @@ module EpubForge
       rescue SystemCallError => e
         STDERR.write( "Problem connecting to server (System call error) when downloading #{@uri.path}" )
         STDERR.write( "#{e}\n\n" )
+      rescue OpenSSL::SSL::SSLError => e
+        STDERR.write( "OpenSSL::SSL::SSLError while downloading #{@uri.path}" )
+        STDERR.write( "#{e}\n\n" )
       # rescue Timeout::Error
       #   STDERR.write( "Timeout error connecting to #{@uri.path}" )
       #   STDERR.write( "#{e}\n\n" )

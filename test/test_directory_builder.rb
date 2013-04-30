@@ -70,8 +70,8 @@ class TestDirectoryBuilder < Test::Unit::TestCase
     
     should "download random crap from all over the Internet" do
       DirBuilder.tmpdir do |b|
-        gist_url = "https://gist.github.com/darthschmoo/5281550/raw/5b95730a7c43f1e7fd9fa33617b6447215fa8ba1/gistfile1.txt"
-        gist_text = "This is a file\n==============\n\n**silent**: But _bold_! [Link](http://slashdot.org)"
+        gist_url = "http://bannedsorcery.com/downloads/testfile.txt"
+        gist_text = "This is a file\n==============\n\n**silent**: But _bold_! [Link](http://slashdot.org)\n"
         b.download( gist_url, "gist.txt" )
         
         b.file( "gist.txt.2" ) do

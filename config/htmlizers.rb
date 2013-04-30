@@ -27,21 +27,21 @@ end
 EpubForge::Utils::Htmlizer.define do |html|
   html.format     :markdown
   html.group      :fallback
-  html.executable "/usr/bin/false"
+  html.executable "false"
   html.cmd        "echo \"<pre>\" && cat {{f}} && echo \"</pre>\""
 end
 
 EpubForge::Utils::Htmlizer.define do |html|
   html.format     :textile
   html.group      :fallback
-  html.executable "/usr/bin/false"
+  html.executable "false"
   html.cmd        "echo \"<pre>\" && cat {{f}} && echo \"</pre>\""
 end
 
 EpubForge::Utils::Htmlizer.define do |html|
   html.format     :txt
   html.group      :fallback
-  html.executable "/usr/bin/false"
+  html.executable "false"
   html.cmd        "echo \"<pre>\" && cat {{f}} && echo \"</pre>\""
 end
 
@@ -50,13 +50,13 @@ end
 EpubForge::Utils::Htmlizer.define do |html|
   html.format     :html
   html.group      :fallback
-  html.executable "/usr/bin/false"
+  html.executable "false"
   html.cmd        "cat {{f}}"
 end
 
 EpubForge::Utils::Htmlizer.define do |html|
   html.format     :unknown
   html.group      :fallback
-  html.executable "/usr/bin/false"
+  html.executable "false"
   html.cmd        "echo \"<pre>\" && cat {{f}} && echo \"</pre>\""
 end
