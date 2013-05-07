@@ -42,7 +42,7 @@ FunWith::Configurations::Config.new do
       # chapter_summary that comes after, you might want to define the matcher more
       # specifically, for example 'chapter-\d+'  (chapter followed by dash followed by any number of numbers).
       # 
-      "chapter-*", 
+      "chapter-.*", 
       "afterword"
     ]
 

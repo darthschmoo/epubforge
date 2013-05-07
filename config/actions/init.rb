@@ -15,7 +15,7 @@ module EpubForge
         
         @template_dir = EpubForge.root.join( "templates", @template_to_use )
         src_entries = @template_dir.glob( "**", "*" ).map{ |entry|
-          entry.relative_to( @template_dir )
+          entry.relative_path_from( @template_dir )
         }
         
         self.source_paths.push( @template_dir )
@@ -74,7 +74,7 @@ module EpubForge
             configure_git( opts[:git] || {} )
           end
         else
-          say_in_warning("The program 'git' must be installed and locatable if you want epubforge to back up your project.")
+          warn("The program 'git' must be installed and locatable if you want epubforge to back up your project.")
         end
       end
       

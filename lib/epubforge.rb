@@ -90,6 +90,7 @@ require_relative 'epub/assets/markdown'
 require_relative 'epub/assets/textile'
 require_relative 'epub/assets/image'
 require_relative 'epub/assets/stylesheet'
+require_relative 'epub/assets/xhtml'
 require_relative 'project/project'
 
 puts "Requirements loaded" if debugging?

@@ -27,33 +27,33 @@ module EpubForge
     end
 
     def collect_stdout( dest = StringIO.new, &block )
-              raise ArgumentError.new("No block given.") unless block_given?
-              
-              prior_stdout = $stdout
-              # @epf_prior_stdout_stack ||= []
-              # @epf_prior_stdout_stack << $stdout
-               
-              $stdout = begin
-                          if dest.is_a?( String ) || dest.is_a?( Pathname )
-                            File.open( dest, "a" )
-                          elsif dest.is_a?( IO ) || dest.is_a?( StringIO )
-                            dest
-                          else
-                            raise ArgumentError.new("collect_stdout cannot take a <#{dest.class.name}> as an argument.")
-                          end
-                        end
-            
-              $stdout.sync = true
-              yield
-            
-              $stdout = prior_stdout
-              
-              dest.is_a?( StringIO ) ? dest.string : nil
-            end
-                    # 
-                    # def collect_stdout( *args, &block )
-                    #   yield
-                    # end
+      raise ArgumentError.new("No block given.") unless block_given?
+      
+      prior_stdout = $stdout
+      # @epf_prior_stdout_stack ||= []
+      # @epf_prior_stdout_stack << $stdout
+       
+      $stdout = begin
+                  if dest.is_a?( String ) || dest.is_a?( Pathname )
+                    File.open( dest, "a" )
+                  elsif dest.is_a?( IO ) || dest.is_a?( StringIO )
+                    dest
+                  else
+                    raise ArgumentError.new("collect_stdout cannot take a <#{dest.class.name}> as an argument.")
+                  end
+                end
+    
+      $stdout.sync = true
+      yield
+    
+      $stdout = prior_stdout
+      
+      dest.is_a?( StringIO ) ? dest.string : nil
+    end
+    
+    # def collect_stdout( *args, &block )
+    #   yield
+    # end
   end
 end
 

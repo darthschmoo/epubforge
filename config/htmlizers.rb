@@ -1,4 +1,12 @@
 EpubForge::Utils::Htmlizer.define do |html|
+  html.format     :xhtml
+  html.group      :default
+  html.executable "false"
+  html.cmd        "cat {{f}}"
+end
+
+
+EpubForge::Utils::Htmlizer.define do |html|
   html.format     :markdown
   html.group      :default                   # the default is :user, so user-defined ones don't have to set it
   html.executable "multimarkdown"

@@ -31,8 +31,8 @@ module EpubForge
           say_all_is_well "Formatted for Kindle (.mobi file).  File at #{@dst_mobi}."
           push_to_device @dst_mobi
         else
-          say_warning( "Something went wrong during the conversion process." )
-          say_warning( "#{@dst_mobi} exists, but may not be complete or correct." ) if @dst_mobi.exist?  
+          warn( "Something went wrong during the conversion process." )
+          warn( "#{@dst_mobi} exists, but may not be complete or correct." ) if @dst_mobi.exist?  
           false
         end
       end

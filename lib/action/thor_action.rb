@@ -64,10 +64,6 @@ module EpubForge
         say( statement, GREEN )
       end
       
-      def say_in_warning( statement )
-        warn( statement, RED )
-      end
-      
       def say_subtly( statement )
         say( statement, MAGENTA )
       end

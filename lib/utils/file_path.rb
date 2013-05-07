@@ -129,7 +129,7 @@ module EpubForge
         self.basename.to_s.split(".").last || ""
       end
       
-      def relative_to( ancestor_dir )
+      def relative_path_from( ancestor_dir )
         depth = ancestor_dir.to_s.split(File::SEPARATOR).length
         relative_path = self.to_s.split(File::SEPARATOR)
         relative_path[(depth)..-1].join(File::SEPARATOR).fwf_filepath

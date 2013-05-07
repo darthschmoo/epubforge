@@ -29,8 +29,8 @@ class TestEpubforge < Test::Unit::TestCase  #
           EpubForge.collect_stdout do
             report = EpubForge::Action::Runner.new.exec( "wc", @project_dir )
             assert_kind_of Hash, report
-            assert_equal 87, report["Book"]
-            assert_equal 94, report["Today"]
+            assert_equal 119, report["Book"]
+            assert_equal 126, report["Today"]
             assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Action::WordCount::WORD_COUNT_FILE ).exist?
           end
         end  
@@ -74,8 +74,8 @@ class TestEpubforge < Test::Unit::TestCase  #
               end
               
               d.join("Text") do |d|
-                d.join( "section0002.xhtml" ) do |section|
-                  assert section.file?
+                d.join( "afterword.xhtml" ) do |section|
+                  assert section.file?, "file should exist: chapter-0002.xhtml"
                   section_text = section.read
                   assert_match /DOCTYPE/, section_text
                   assert_match /<title>#{@book_title}<\/title>/, section_text
@@ -90,14 +90,14 @@ class TestEpubforge < Test::Unit::TestCase  #
               d.join( "content.opf" ) do |content|
                 content_text = content.read
                 assert_match /<dc:title>#{@book_title}<\/dc:title>/, content_text
-                assert_match /Text\/section0003/, content_text
+                assert_match /Text\/chapter-0003/, content_text
               end
               
               d.join( "toc.ncx" ) do |toc|
                 assert_equal 1, toc.grep( /DOCTYPE/ ).length
                 assert_equal 4, toc.grep( /meta name=/ ).length
                 
-                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "sequence"] ).length + @chapter_count - 1
+                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "sequence"] ).length + @chapter_count
                 assert_equal section_count, toc.grep( /xhtml/ ).length
                 assert_equal 1, toc.grep( /#{@book_title}/ ).length
                 

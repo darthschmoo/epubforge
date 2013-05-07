@@ -5,12 +5,11 @@ module EpubForge
         attr_reader :ext, :filename, :name
         def initialize( filename, options = {} )
           @filename = filename.fwf_filepath
-          @name     = @filename.basename.to_s.split(".")[0..-2].join(".")
-          @ext      = @filename.extname.gsub( /^\./, "" )
+          @name, @ext  = @filename.basename_and_ext
         end
   
         def link
-          IMAGES_DIR.join( @name )
+          IMAGES_DIR.join( "#{@name}.#{@ext}"  )
         end
       end
     end
