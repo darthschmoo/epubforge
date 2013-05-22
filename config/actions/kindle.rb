@@ -4,7 +4,7 @@ module EpubForge
       description "Create a .mobi book and try to push it to your Kindle (conversion requires Calibre)"
       keywords    :kindle, :push, :b2k
       usage       "#{$PROGRAM_NAME} b2k <project_directory>"
-      requires_executable "ebook-convert"
+      # requires_executable "ebook-convert"
       
       # TODO:  Hard-coded.  Need a global settings file?
       KINDLE_DEVICE_DIR = "/".fwf_filepath.join( "Volumes", "Kindle" )

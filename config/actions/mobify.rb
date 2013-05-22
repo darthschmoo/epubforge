@@ -4,7 +4,7 @@ module EpubForge
       description "Create a .mobi book and try to push it to your Kindle (conversion requires Calibre)"
       keywords    :mobify
       usage       "#{$PROGRAM_NAME} mobify <project_directory(optional)>"
-      requires_executable "ebook-convert", "ebook-convert is included as part of the Calibre ebook management software."
+      # requires_executable "ebook-convert", "ebook-convert is included as part of the Calibre ebook management software."
       
       desc( "do:kindle", "Turn your .epub file into a .mobi file.  Check to see if your Kindle is connected, then pushes it." )
       def do( project, *args )
