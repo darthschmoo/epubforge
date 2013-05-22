@@ -1,21 +1,22 @@
 module EpubForge
   module Action
-    class Kindle < ThorAction
+    class Mobify < ThorAction
       description "Create a .mobi book and try to push it to your Kindle (conversion requires Calibre)"
-      keywords    :kindle, :push, :b2k
-      usage       "#{$PROGRAM_NAME} b2k <project_directory>"
-      requires_executable "ebook-convert"
-      
-      # TODO:  Hard-coded.  Need a global settings file?
-      KINDLE_DEVICE_DIR = "/".fwf_filepath.join( "Volumes", "Kindle" )
-      KINDLE_PUSH_DIR   = KINDLE_DEVICE_DIR.join("documents", "fic-mine")
+      keywords    :mobify
+      usage       "#{$PROGRAM_NAME} mobify <project_directory(optional)>"
+      requires_executable "ebook-convert", "ebook-convert is included as part of the Calibre ebook management software."
       
       desc( "do:kindle", "Turn your .epub file into a .mobi file.  Check to see if your Kindle is connected, then pushes it." )
       def do( project, *args )
         @project = project
         @src_epub = @project.filename_for_epub_book.fwf_filepath
         @dst_mobi = @project.filename_for_mobi_book.fwf_filepath
-
+        
+        @args = args
+        
+        mobify
+        
+        
       end
       
       protected

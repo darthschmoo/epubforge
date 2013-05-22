@@ -7,7 +7,7 @@ class TestEpubforge < Test::Unit::TestCase  #
       printout = EpubForge.collect_stdout do
         EpubForge::Action::Runner.new.exec    # empty args, should append --help
       end
-      
+
       assert_match /\( wc \| count \)/, printout
       assert_match /epubforge \[action\] \[folder\]/, printout
     end
@@ -27,7 +27,7 @@ class TestEpubforge < Test::Unit::TestCase  #
       should "successfully count ALL THE WORDS!" do
         create_project do
           EpubForge.collect_stdout do
-            report = EpubForge::Action::Runner.new.exec( "wc", @project_dir )
+            report = EpubForge::Action::Runner.new.exec( "wc", @project_dir ).execution_returned
             assert_kind_of Hash, report
             assert_equal 119, report["Book"]
             assert_equal 126, report["Today"]
@@ -39,7 +39,9 @@ class TestEpubforge < Test::Unit::TestCase  #
       should "fail to count words when no project is given and cwd is not a project" do
         create_project do
           printout = EpubForge.collect_stdout do
-            assert !EpubForge::Action::Runner.new.exec( "wc" )
+            run_description = EpubForge::Action::Runner.new.exec( "wc" )
+            assert_equal nil, run_description.execution_returned
+            assert_equal false, run_description.success?
           end
           
           assert_match /Error\(s\) trying to complete the requested action/, printout
@@ -97,7 +99,7 @@ class TestEpubforge < Test::Unit::TestCase  #
                 assert_equal 1, toc.grep( /DOCTYPE/ ).length
                 assert_equal 4, toc.grep( /meta name=/ ).length
                 
-                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "sequence"] ).length + @chapter_count
+                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "sequence"] ).length + @chapter_count - 1
                 assert_equal section_count, toc.grep( /xhtml/ ).length
                 assert_equal 1, toc.grep( /#{@book_title}/ ).length
                 
@@ -127,7 +129,6 @@ class TestEpubforge < Test::Unit::TestCase  #
         end
         
         assert @project_dir.directory?, "Project directory doesn't exist.  Cannot proceed."
-        
         
         @book_title = fill_in_project_options[:answers][:title]
         @chapter_count = fill_in_project_options[:answers][:chapter_count].to_i

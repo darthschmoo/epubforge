@@ -4,6 +4,7 @@
 # require 'singleton'
 # require 'builder'
 require 'thor'
+require 'optparse'
 require 'xdg'            # keep configuration files in sane places
 require 'debugger'
 require 'erb'
@@ -15,7 +16,6 @@ require 'net/http'
 require 'open-uri'            # needed by Utils::Downloader
 require 'yaml'
 require 'rbconfig'
-# require 'configurator'
 require 'fun_with_files'
 require 'fun_with_configurations'
 

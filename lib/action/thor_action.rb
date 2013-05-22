@@ -40,6 +40,9 @@ module EpubForge
       include Thor::Actions
       extend SharedActionInterface
       
+      method_option :verbose, :type => :boolean, :default => false, :aliases => "-v"
+      method_option :debug, :type => :boolean, :default => false, :aliases => "--dbg"
+      
       
       CLEAR     = Thor::Shell::Color::CLEAR
       RED       = Thor::Shell::Color::RED
@@ -52,6 +55,14 @@ module EpubForge
       
       
       protected
+      def say_when_verbose( *args )
+        say( *args ) if @verbose
+      end
+      
+      def say_when_debugging( *args )
+        say( *args ) if @debug
+      end
+      
       def say_error( statement )
         say( "ERROR : #{statement}", RED + ON_BLUE )
       end
@@ -127,6 +138,27 @@ module EpubForge
         end
           
         @executables[name]  
+      end
+      
+      def requirements
+        @requirements ||= []
+      end
+      
+      def add_requirement( *args, &block )
+        @requirements ||= []
+        @requirements.push( [args, block] )
+      end
+      
+      def requires_executable( ex, fail_msg )
+        add_requirement( ex, fail_msg ) do
+          executable_installed?( ex, fail_msg )
+        end
+      end
+      
+      def must_target_a_project( project_dir )
+        add_requirement( project_dir ) do
+          Project.is_project_dir?( project_dir )
+        end
       end
       
       def git_installed?

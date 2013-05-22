@@ -53,6 +53,7 @@ module EpubForge
     
     # def collect_stdout( *args, &block )
     #   yield
+    #   ""
     # end
   end
 end

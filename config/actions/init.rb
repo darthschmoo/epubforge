@@ -121,7 +121,6 @@ module EpubForge
         end
 
         self.destination_root_filepath = root.fwf_filepath
-        debugger if self.destination_root_filepath != root.fwf_filepath.expand
         
         if self.destination_root_filepath.exist? && 
             (!(self.destination_root_filepath.empty?) || !(self.destination_root_filepath.directory?))

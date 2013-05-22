@@ -74,7 +74,7 @@ module EpubForge
       def translate( filename, opts = "" )
         return false unless can_do_job?( filename )
       
-        result = "<!-- generated from #{@format} by htmlizer #{@name} -->\n\n" 
+        result =  ""
         if @custom_proc
           result += @custom_proc.call( filename, *opts )
         elsif @cmd
@@ -88,6 +88,7 @@ module EpubForge
           return false
         end
       
+        result += "\n\n<!-- generated from #{@format} by htmlizer #{@name} -->\n" 
         result
       end
     

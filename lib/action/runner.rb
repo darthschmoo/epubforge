@@ -17,12 +17,9 @@ module EpubForge
       end
             
       def run
-        if @run_description.runnable?
-          @run_description.klass.new.do( @run_description.project, *(@run_description.args) )
-        else
-          puts "Error(s) trying to complete the requested action:"
-          puts @run_description.errors.join("\n")
-        end
+        @run_description.run
+        puts @run_description
+        @run_description
       end
       
       # order:  project_dir(optional), keyword, args
@@ -35,9 +32,6 @@ module EpubForge
         # first argument is the action's keyword
         # print help message if no keywords given
         parse_args
-        
-        # finish setting up run_description
-        @run_description.args = @args
         
         run
       end
@@ -86,6 +80,8 @@ module EpubForge
         
         if !existing_project && @run_description.klass.project_required?
           @run_description.errors << "Could not find a project directory, but the action #{@run_description.klass} requires one. Current directory is not an epubforge project."
+        else
+          @run_description.args = @args
         end
       end
       

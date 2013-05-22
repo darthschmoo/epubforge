@@ -66,20 +66,17 @@ module EpubForge
         # Existing cover is moved to the very front
         if cover_section = @sections.detect{|sec| sec.original_file.basename_no_ext.match( /^cover$/ ) }
           cover_section.cover( true )
-          @sections.delete( cover_section )
-          @sections.unshift( cover_section )
         elsif cover_image = @images.find{ |img| img.name == "cover" }
           # actually install cover
           contents = "<div id='cover'><img class='cover' src='#{cover_image.link.relative_path_from(TEXT_DIR)}' alt='#{@metadata.name}, by #{@metadata.author}'/></div>"
           cover_file = @project.book_dir.join( "cover.xhtml" )
           cover_file.write( wrap_page( contents ) )
           cover_section = Assets::Page.new( cover_file, @metadata, @project )
+          @sections.unshift( cover_section )
           puts "cover page generated"
         else
           return false
         end
-
-        @sections.unshift( cover_section )
       end
 
       def toc
