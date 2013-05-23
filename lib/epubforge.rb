@@ -5,6 +5,7 @@
 # require 'builder'
 require 'thor'
 require 'optparse'
+require 'nokogiri'
 require 'xdg'            # keep configuration files in sane places
 require 'debugger'
 require 'erb'
@@ -19,13 +20,11 @@ require 'rbconfig'
 require 'fun_with_files'
 require 'fun_with_configurations'
 
-
-
 EpubForge = Module.new
 EpubForge::DEBUG = false
-
 # EpubForge.root responds with the gem directory
 FunWith::Files::RootPath.rootify( EpubForge, __FILE__.fwf_filepath.dirname.up )
+EpubForge::VERSION = EpubForge.root("VERSION").read
 
 def debugger?
   debugger if debugging?

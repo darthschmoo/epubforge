@@ -18,7 +18,6 @@ module EpubForge
             
       def run
         @run_description.run
-        puts @run_description
         @run_description
       end
       

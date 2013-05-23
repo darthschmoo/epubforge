@@ -29,29 +29,31 @@ module EpubForge
         end
         
         def get_title
-          @title = @original_file.basename.to_s.split(".")[0..-2].map(&:capitalize).join(" : ")
+          html_doc = Nokogiri::HTML( @html )
+          h1 = html_doc.xpath("//h1").first
+          
+          if h1.nil?
+            @title = @original_file.basename.to_s.split(".")[0..-2].map(&:capitalize).join(" : ")
+          else
+            title = h1.content
+            @title = title.gsub(/\s*\/+\s*/, "").epf_titlecap_words
+          end
         end
         
         def link
           TEXT_DIR.join( "#{@section_id}.#{@dest_extension}" )
         end
         
+        def item_id
+          cover? ? "cover" : self.link.basename
+        end
+        
         def media_type
           MEDIA_TYPES[@dest_extension]
         end
         
-        def cover( val = nil )
-          unless val.nil?
-            @cover = val
-          end
-          @cover
-        end
-        
-        def cover_asset( val = nil )
-          unless val.nil?
-            @cover = val
-          end
-          @cover
+        def cover?
+          @section_id == "cover"
         end
       end
     end

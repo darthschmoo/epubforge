@@ -5,16 +5,18 @@ module EpubForge
   module Epub
     PAGE_FILE_EXTENSIONS  = %w(html markdown textile xhtml)
     IMAGE_FILE_EXTENSIONS = %w(jpg png gif)
+    FONT_FILE_EXTENSION   = %w(ttf otf)
 
     MEDIA_TYPES = { "gif" => "image/gif", "jpg" => "image/jpeg", "png" => "image/png",
                     "css" => "text/css", "js" => "application/javascript", "pdf" => "application/pdf",
-                    "txt" => "text/plain", "xhtml" => "application/xhtml+xml"
+                    "txt" => "text/plain", "xhtml" => "application/xhtml+xml",
+                    "ttf" => "application/x-font-ttf", "otf" => "application/x-font-opentype"
                   }
     
-    IMAGES_DIR = "".fwf_filepath.join( "/", "OEBPS", "Images" )
-    STYLE_DIR  = "".fwf_filepath.join( "/", "OEBPS", "Styles" )
-    TEXT_DIR   = "".fwf_filepath.join( "/", "OEBPS", "Text" )
-    
+    IMAGE_DIR, STYLE_DIR, TEXT_DIR, FONT_DIR = %w(Images Styles Text Fonts).map{ |dir| 
+      "/".fwf_filepath.join("OEBPS", dir) 
+    }
+        
     class Builder
       attr_reader :stylesheets
       
@@ -56,6 +58,10 @@ module EpubForge
         @stylesheets = @book_dir.glob( "stylesheets", "*.css" ).map do |sheet| 
           Assets::Stylesheet.new( sheet ) 
         end
+        
+        @fonts = @book_dir.glob( "fonts", ext: FONT_FILE_EXTENSION ).map do |font|
+          Assets::Font.new( font )
+        end
     
         install_cover
         
@@ -64,15 +70,15 @@ module EpubForge
       
       def install_cover
         # Existing cover is moved to the very front
-        if cover_section = @sections.detect{|sec| sec.original_file.basename_no_ext.match( /^cover$/ ) }
-          cover_section.cover( true )
-        elsif cover_image = @images.find{ |img| img.name == "cover" }
+        if @cover_section = @sections.detect(&:cover?)
+          # no need to do anything
+        elsif @cover_image = @images.detect(&:cover?)
           # actually install cover
-          contents = "<div id='cover'><img class='cover' src='#{cover_image.link.relative_path_from(TEXT_DIR)}' alt='#{@metadata.name}, by #{@metadata.author}'/></div>"
+          contents = "<div id='cover'><img class='cover' src='#{@cover_image.link.relative_path_from(TEXT_DIR)}' alt='#{@metadata.name}, by #{@metadata.author}'/></div>"
           cover_file = @project.book_dir.join( "cover.xhtml" )
           cover_file.write( wrap_page( contents ) )
-          cover_section = Assets::Page.new( cover_file, @metadata, @project )
-          @sections.unshift( cover_section )
+          @cover_section = Assets::Page.new( cover_file, @metadata, @project )
+          @sections.unshift( @cover_section )
           puts "cover page generated"
         else
           return false
@@ -181,8 +187,8 @@ module EpubForge
             b.dc :date, {:"opf:event" => "epub-publication"}, @metadata["epub-publication"] || Time.now.year
             
             
-            if @sections.first.cover
-              b.meta :name => "cover", :content => @sections.first.cover
+            if @cover_section
+              b.meta :name => "cover", :content => "cover"
             end
           end
       
@@ -190,24 +196,16 @@ module EpubForge
           b.manifest do
             #     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
             b.item :id => "ncx", :href => "toc.ncx", :"media-type" => "application/x-dtbncx+xml"
-        
-            @sections.each_with_index do |section, i|
-              b.item :id => section.link.basename, :href => section.link.relative_path_from("/OEBPS"), :"media-type" => section.media_type
-            end
-        
-            @images.each do |image|
-              b.item :id => image.filename.basename, :href => image.link.relative_path_from("/OEBPS"), :"media-type" => image.media_type
-            end
             
-            @stylesheets.each do |sheet|
-              b.item :id => sheet.name, :href => sheet.link.relative_path_from("/OEBPS"), :"media-type" => sheet.media_type
+            [@sections, @images, @stylesheets, @fonts].flatten.each do |asset|
+              b.item :id => asset.item_id, :href => asset.link.relative_path_from("/OEBPS"), :"media-type" => asset.media_type
             end
           end
       
           # <spine toc="ncx"> 
           b.spine :toc => "ncx" do
             @sections.each do |section|
-              b.itemref :idref => section.dest_filename
+              b.itemref :idref => section.item_id
             end
           end
       
@@ -246,7 +244,7 @@ module EpubForge
               end
             end
           
-            if @images.length > 0
+            unless @images.epf_blank?
               build.dir "Images" do
                 for img in @images
                   build.copy( img.filename )
@@ -261,6 +259,14 @@ module EpubForge
                 end
               end
             end
+            
+            unless @fonts.epf_blank?
+              build.dir "Fonts" do
+                for font in @fonts
+                  build.copy( font.filename )
+                end
+              end
+            end
           end
         end
       end
@@ -268,11 +274,11 @@ module EpubForge
       def package epub_filename
         Packager.new( @scratch_dir, epub_filename ).package
       end
-  
-      def clean
-        # `rm -r #{@scratch_dir}`
-      end
       
+      def clean
+        # do nothing
+      end
+
       protected      
       def wrap_page content = ""
         b = XmlBuilder::XmlMarkup.new( :indent => 2)

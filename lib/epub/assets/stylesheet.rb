@@ -13,6 +13,10 @@ module EpubForge
           STYLE_DIR.join( @name )
         end
         
+        def item_id
+          @name
+        end
+        
         def media_type
           MEDIA_TYPES["css"]
         end

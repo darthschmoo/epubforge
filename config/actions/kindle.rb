@@ -23,7 +23,7 @@ module EpubForge
         return false unless fulfill_requirements
         
         say "converting from #{@src_epub} to #{@dst_mobi}"
-        cmd = "ebook-convert #{@src_epub} #{@dst_mobi}"
+        cmd = "ebook-convert --no-default-epub-cover #{@src_epub} #{@dst_mobi}"
         say "executing: #{cmd}"
         `#{cmd}`
 

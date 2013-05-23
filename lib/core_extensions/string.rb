@@ -1,5 +1,4 @@
 class String
-  TITLE_WORDS_NOT_CAPITALIZED = %W(a an in the for and nor but or yet so also)
   def epf_blank?
     self.strip.length == 0  
   end
@@ -11,6 +10,22 @@ class String
   # TODO: Need comprehensive list of characters to be protected.
   def epf_backhashed_filename
     self.gsub(" ", "\\ ")  
+  end
+  
+  def epf_titlecap_words
+    nocaps = %w(a and at be but in is nor of or so teh the to with)
+    upcase = %w(Ii Ii: Iii M.d.)       # TODO:  ick
+
+    words = self.downcase.gsub(/\u00a0/, ' ').split(/(\s|\n)+/).map(&:strip).delete_if(&:epf_blank?)
+    first_word = true
+
+    for word in words
+      word.capitalize! unless nocaps.include?(word) && first_word == false    # note: if the word is all caps, will downcase  # TODO: What about M.D., state abbreviations, etc.?  This is far from perfect.
+      word.upcase! if upcase.include?(word)
+      first_word = false
+    end
+    
+    words.join(" ")
   end
   
   def epf_underscorize

@@ -23,10 +23,9 @@ module EpubForge
           handle_errors do
             @execution_returned = self.klass.new.do( self.project, *(self.args) )
           end
-        else
-          puts "Error(s) trying to complete the requested action:"
-          puts self.errors.join("\n")
         end
+
+        report_errors if errors?
         
         self.finish
         self
@@ -38,7 +37,11 @@ module EpubForge
         @errors << "#{e.class}: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
         self
       end
-      
+
+      def report_errors
+        puts @errors.join("\n\n------------------------------------------------------------------\n\n")
+        puts "Error(s) trying to complete the requested action:"
+      end
       
       def runnable?
         ! errors?
