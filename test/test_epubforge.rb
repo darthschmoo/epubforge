@@ -1,16 +1,17 @@
 require 'helper'
 require 'thor'
 
-class TestEpubforge < Test::Unit::TestCase  # 
+class TestEpubforge < EpubForge::TestCase  # 
   context "Testing a few basic commands" do
-    should "print successfully" do
-      printout = EpubForge.collect_stdout do
-        EpubForge::Action::Runner.new.exec    # empty args, should append --help
-      end
-
-      assert_match /\( wc \| count \)/, printout
-      assert_match /epubforge \[action\] \[folder\]/, printout
-    end
+    # TODO: Figure out wtf to do for a help system
+    # should "print successfully" do
+    #   printout = EpubForge.collect_stdout do
+    #     EpubForge::Action::Runner.new.exec    # empty args, should append --help
+    #   end
+    # 
+    #   assert_match /\( wc \| count \)/, printout
+    #   assert_match /epubforge \[action\] \[folder\]/, printout
+    # end
     
     should "initialize a new project" do
       create_project do
@@ -51,7 +52,7 @@ class TestEpubforge < Test::Unit::TestCase  #
       
       should "create an .epub file" do
         create_project do
-          printout = EpubForge.collect_stdout do
+          printout = EpubForge.collect_stdout() do    # .collect_stdout(STDOUT) to see what's going on
             EpubForge::Action::Runner.new.exec( "forge", @project_dir )
           end
           
@@ -112,54 +113,16 @@ class TestEpubforge < Test::Unit::TestCase  #
       
       should "create an .epub of the notes directory" do
         create_project do
-          EpubForge::Action::Runner.new.exec( "forge_notes", @project_dir )
-          
+          EpubForge::Action::Runner.new.exec( "forge:notes", @project_dir )
           assert @notes_file.file?
           assert ! @notes_file.empty?
         end
       end
-    end
-        
-    protected
-    def create_project( &block )
-      EpubForge::Utils::DirectoryBuilder.tmpdir do |d|
-        @project_dir = d.current_path.join("project")
-        @printout = EpubForge.collect_stdout do
-          EpubForge::Action::Runner.new.exec( "init", @project_dir, fill_in_project_options )
-        end
-        
-        assert @project_dir.directory?, "Project directory doesn't exist.  Cannot proceed."
-        
-        @book_title = fill_in_project_options[:answers][:title]
-        @chapter_count = fill_in_project_options[:answers][:chapter_count].to_i
-        @ebook_file = @project_dir.join( @book_title.epf_underscorize + ".epub" )
-        @notes_file = @project_dir.join( @book_title.epf_underscorize + ".notes.epub" )
-        
-        yield
+      
+      should "print friggin' something when no args" do
+        EpubForge::Action::Runner.new.exec()
       end
-    end
-    
-    def fill_in_project_options( opts = {} )
-      template_options = { 
-        :answers => {
-          :chapter_count => 3,
-          :title => "The Courtesan of Fate",
-          :author => "Wilberforce Poncer",
-          :license => "You Owe Me All the Money Limited License, v. 2.1",
-          :use_git => true,
-          :git => {
-            :repo_id => "abcdef0123456789",
-            :backup_type => "Back up to a remote host.",
-            :host => "myhost.somewhere.com",
-            :user => "andersbr",
-            :repo => "/home/andersbr/git"
-          }
-        }
-      }
       
-      template_options[:answers].merge(opts)
-      
-      template_options
     end
   end
 end

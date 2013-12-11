@@ -3,7 +3,8 @@ module EpubForge
     class RunDescription
       attr_accessor :args,
                     :project,
-                    :keyword,
+                    :namespace,
+                    :subcommand,
                     :klass,
                     :errors,
                     :state,
@@ -12,7 +13,8 @@ module EpubForge
       def initialize
         @args = nil
         @project = nil
-        @keyword = nil
+        @namepace = nil
+        @subcommand = nil
         @klass = nil
         @errors = []
         @state = :initialized
@@ -21,7 +23,8 @@ module EpubForge
       def run
         if self.runnable?
           handle_errors do
-            @execution_returned = self.klass.new.do( self.project, *(self.args) )
+            @args[0] = (@args[0]).split(":").last
+            @execution_returned = self.klass.start( @args )
           end
         end
 
@@ -41,6 +44,14 @@ module EpubForge
       def report_errors
         puts @errors.join("\n\n------------------------------------------------------------------\n\n")
         puts "Error(s) trying to complete the requested action:"
+      end
+      
+      def quit_on_errors
+        if self.errors?
+          self.finish
+          self.report_errors
+          exit( -1 )
+        end
       end
       
       def runnable?
@@ -65,8 +76,8 @@ module EpubForge
       
       def to_s
         str = "RunDescription:\n"
-        [ :args, :project, :keyword, :klass, :errors, :state ].each do |data|
-          str << "#{data} : #{self.send(data)}\n"
+        [ :args, :project, :namespace, :subcommand, :klass, :errors, :state ].each do |data|
+          str << "#{data} : #{self.send(data).inspect}\n"
         end
 
         str

@@ -2,7 +2,7 @@ require 'helper'
 
 include EpubForge::Utils
 
-class TestUtils < Test::Unit::TestCase
+class TestUtils < EpubForge::TestCase
   context "testing file orderer" do
     should "accurately sort files in the templates/book dir" do
       files = %W(afterword.markdown 

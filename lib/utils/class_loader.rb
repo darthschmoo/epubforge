@@ -77,6 +77,26 @@ module EpubForge
           end
         end
       end
+      
+      # just loading all the files is simpler, and probably little harm from reloading.  Plus, I want
+      # to be able to split up existing ThorClasses across multiple files.
+      def self.load_me( *loadables )
+        silence_warnings do
+          for loadable in loadables
+            loadable = loadable.fwf_filepath
+          
+            if loadable.file?
+              load( loadable )
+            elsif loadable.directory?
+              for entry in loadable.glob( :ext => "rb", :recursive => true )
+                load( entry )
+              end
+            else
+              puts "Warning: No idea what I'm trying to load (#{loadable}:#{loadable.class})"
+            end
+          end
+        end
+      end
     end
   end
 end

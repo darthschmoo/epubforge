@@ -4,13 +4,17 @@ module EpubForge
       attr_accessor :actions, :actions_directories, :keywords
 
       def initialize
-        @keywords = {}
-        @actions = []
-        @actions_directories = []
+        clear
       end
 
+      def clear
+        @keywords = {}
+        @actions = []
+        @actions_directories = [] 
+      end
+      
       def add_actions( *args )
-        Utils::ActionLoader.require_me( *args )
+        Utils::ActionLoader.load_me( *args )
 
         new_actions = Utils::ActionLoader.loaded_classes - @actions
         @actions += new_actions

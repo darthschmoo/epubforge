@@ -2,7 +2,7 @@ require 'helper'
 
 DirBuilder = EpubForge::Utils::DirectoryBuilder
 
-class TestDirectoryBuilder < Test::Unit::TestCase
+class TestDirectoryBuilder < EpubForge::TestCase
   context "tearing my hair out because shoulda seems borked" do
     should "stop blaming shoulda for my problems" do
       assert true

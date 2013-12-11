@@ -1,13 +1,11 @@
 module EpubForge
   module Action
-    class NotesToEpub < ThorAction
-      description "Create an epub book from the .markdown files in the project's notes/ subdirectory."
-      keywords    :notes, :forge_notes
-      usage       "#{$PROGRAM_NAME} notes <project_directory> (optional if current directory)"
+    class Forge < ThorAction
+      include_standard_options
       
-      desc( "do:notes", "Wraps your story notes up in a .epub (ebook) file." )
-      def do( project, *args )
-        @project = project
+      desc( "forge:notes", "Wraps your story notes up in a .epub (ebook) file." )
+      def notes( *args )
+        before_start
         builder = EpubForge::Epub::Builder.new( @project, book_dir: @project.target_dir.join("notes"), 
                                                           page_order: @project.config[:pages][:notes] )
         builder.build

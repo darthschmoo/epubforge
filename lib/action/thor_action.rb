@@ -1,11 +1,51 @@
 module EpubForge
   module Action
     module SharedActionInterface
+      def actions_lookup
+        if self == ThorAction
+          @actions_lookup ||= ActionsLookup.new
+        else
+          ThorAction.actions_lookup
+        end
+      end
+      
+      def register_action_subclass( klass )
+        if self == ThorAction
+          @subclasses ||= []
+          @subclasses = (@subclasses + [klass]).uniq
+        else
+          ThorAction.register_action_subclass( klass )
+        end
+      end
+      
+      def subclasses
+        if self == ThorAction
+          @subclasses
+        else
+          ThorAction.subclasses
+        end
+      end
+      
+      def command_to_action_classes
+        if self == ThorAction
+          @command_klass_lookup ||= {}
+        else
+          ThorAction.command_to_action_classes
+        end
+      end
+      
       def description( str = nil )
         @description = str if str
         @description
       end
       
+      # eventually replace description
+      def desc( usage, description, options = {} )
+        self.command_to_action_classes[usage] = self
+        super( usage, description, options )
+      end
+
+      # TODO: Get rid of this
       def keywords( *args )
         if args.epf_blank?
           @keywords ||= []
@@ -34,16 +74,24 @@ module EpubForge
       def project_not_required
         @project_required = false
       end
+      
+      def include_standard_options
+        method_option :verbose, :type => :boolean, :default => false, :aliases => "-v"
+        method_option :debug,   :type => :boolean, :default => false, :aliases => "--dbg"
+        method_option :help,    :type => :boolean, :default => false, :aliases => "-h"
+        method_option :project, :type => :string, :default => nil, :aliases => "--proj"
+      end
     end
     
     class ThorAction < Thor
+      def self.inherited( subclass )
+        self.register_action_subclass( subclass )
+        subclass.include_standard_options
+      end
+      
       include Thor::Actions
       extend SharedActionInterface
-      
-      method_option :verbose, :type => :boolean, :default => false, :aliases => "-v"
-      method_option :debug, :type => :boolean, :default => false, :aliases => "--dbg"
-      
-      
+            
       CLEAR     = Thor::Shell::Color::CLEAR
       RED       = Thor::Shell::Color::RED
       BLUE      = Thor::Shell::Color::BLUE
@@ -54,7 +102,7 @@ module EpubForge
       ON_BLUE   = Thor::Shell::Color::ON_BLUE
       
       
-      protected
+      protected      
       def say_when_verbose( *args )
         say( *args ) if @verbose
       end
@@ -171,6 +219,19 @@ module EpubForge
       
       def project_already_gitted?
         @project.target_dir.join( ".git" ).directory?
+      end
+      
+      def quit_with_error( msg, errno = -1 )
+        STDERR.write( "\n#{msg}\n")
+        exit( errno )
+      end
+      
+      def before_start
+        @project = @options[:project]
+        @debug   = @options[:debug]
+        @help    = @options[:help]
+        @verbose = @options[:verbose]
+        @project = Project.new( @project ) unless @project.nil?
       end
     end
   end

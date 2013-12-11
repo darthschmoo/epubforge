@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestCustomHelpers < Test::Unit::TestCase  # 
+class TestCustomHelpers < EpubForge::TestCase  # 
   context "Testing collect_stdout" do
     should "not print out" do
       outer = ""

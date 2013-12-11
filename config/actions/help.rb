@@ -1,20 +1,18 @@
 module EpubForge
   module Action
     class Help < ThorAction
-      description "The help menu."
-      keywords    :help, :"-h", :"--help"
-      usage       "#{$PROGRAM_NAME} -h"
       project_not_required
       
-      desc( "do:help", "print out help for the various actions.")
-      def do( project, *args )
+      desc( "help", "print out help for the various actions.")
+      def help( *args )
         say_instruction "epubforge [action] [folder]"
         say_instruction "\tActions:"
-        for action in Action::Runner.new.actions_lookup.actions
-          say_instruction "\t( #{action.keywords.join(" | ")} ) :"
-          say_instruction "\t\tDescription: #{action.description}"
-          say_instruction "\t\tUsage:       #{action.usage}\n"
-        end
+        say_instruction ThorAction.command_to_action_classes.inspect
+        # for action in ThorAction.c
+        #   say_instruction "\t( #{action.keywords.join(" | ")} ) :"
+        #   say_instruction "\t\tDescription: #{action.description}"
+        #   say_instruction "\t\tUsage:       #{action.usage}\n"
+        # end
       end
     end
   end

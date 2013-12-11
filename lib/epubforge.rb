@@ -66,7 +66,6 @@ end
 EpubForge.install_fwc_config_from_file( EpubForge::USER_GLOBALS_FILE )
 
 EpubForge.config.activation_key = rand(20**32).to_s(16).gsub(/(.{5})/, '\1-')[0..-2]
-puts "Thank you for registering your copy of the epubforge gem.  Please write down your activation key (#{EpubForge.config.activation_key}) in case you need to call customer service."
 
 require_relative 'utils/html_translator'
 require_relative 'utils/html_translator_queue'

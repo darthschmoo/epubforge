@@ -3,15 +3,17 @@ require 'time'  # for Time.parse
 module EpubForge
   module Action
     class WordCount < ThorAction
+      include_standard_options
+      
       WORD_COUNT_FILE = "wordcount"
       
-      description "Gives approximate word counts for book chapters and notes."
+      description "Manage your word counts for book chapters and notes.  wc (standalone) is main command"
       keywords    :wc, :count
       usage       "#{$PROGRAM_NAME} count <project_directory>"
       
-      desc( "do:wc", "Countify words.")
-      def do( project, *args )
-        @project = project
+      desc( "wc", "Countify words.")
+      def wc( *args )
+        before_start
         @report  = { "Notes" => wc_one_folder( @project.notes_dir ),
                      "Book"  => wc_one_folder( @project.book_dir  ) }
 

@@ -1,14 +1,14 @@
 module EpubForge
   module Action
-    class ActionFromProjectActionsDirectory < ThorAction
-      description "Use this file in the actions/ folder as a template for your custom actions."
-      keywords    :project_action
-      usage       "#{$PROGRAM_NAME} project_action"
+    class <%= @class_name %> < ThorAction
       
-      
-      def do( project, *args )
-        puts "Do something to your project."
+      <% for action in @actions %>
+      desc( "<%= @slug %>:<%= action %>", "do action <%= action %>" )
+      def <%= action %>( project, *args )
+        puts "Do action <%= action %> to your project."
       end
+      
+      <% end %>
     end
   end
 end

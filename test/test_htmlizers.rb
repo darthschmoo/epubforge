@@ -1,7 +1,7 @@
 require 'helper'
 Htmlizer = EpubForge::Utils::Htmlizer
 
-class TestHtmlizers < Test::Unit::TestCase
+class TestHtmlizers < EpubForge::TestCase
   context "testing htmlizers" do
     setup do
       @samples = EpubForge.root("test", "sample_text")

@@ -1,21 +1,26 @@
 module EpubForge
   module Action
-    class Mobify < ThorAction
-      description "Create a .mobi book and try to push it to your Kindle (conversion requires Calibre)"
-      keywords    :mobify
-      usage       "#{$PROGRAM_NAME} mobify <project_directory(optional)>"
-      # requires_executable "ebook-convert", "ebook-convert is included as part of the Calibre ebook management software."
+    class Forge < ThorAction
+      # TODO: These should be user-specific settings
+      KINDLE_DEVICE_DIR = "/".fwf_filepath.join( "Volumes", "Kindle" )
+      KINDLE_PUSH_DIR   = KINDLE_DEVICE_DIR.join( "documents", "fic-mine" )
       
-      desc( "do:mobify", "Turn your .epub file into a .mobi file." )
-      def do( project, *args )
-        @project = project
+      method_option :push, :type => :string, :default => KINDLE_PUSH_DIR
+      
+      desc( "forge:mobi", "Create a .mobi book. Optionally, try to push it to your Kindle.  Conversion requires Calibre (esp. the ebook-convert command-line utility)." )
+      def mobi( *args )
+        before_start
+        @push_dir = (@options[:push] ? @options[:push].fwf_filepath.expand : nil)
+        
+        @args = args
+        @push, @push_to = self.push?
         @src_epub = @project.filename_for_epub_book.fwf_filepath
         @dst_mobi = @project.filename_for_mobi_book.fwf_filepath
         
-        @args = args
         @regenerate_epub = !!( @args.include?( "--no-cache" ) )
         
         mobify
+        push if @push_dir
       end
       
       protected
@@ -35,7 +40,18 @@ module EpubForge
           false
         end
       end
-
+      
+      def push
+        if @push_dir.directory?
+          FileUtils.copy( mobi_file, @push_dir )
+          say_all_is_well "File pushed to Kindle."
+          true
+        else
+          say_error "#{@push_dir} does not exist.  eBook NOT installed.  Your device may not be plugged in."
+          false
+        end   
+      end
+      
       
       def fulfill_requirements
         unless ebook_convert_installed?
@@ -44,7 +60,7 @@ module EpubForge
         end
         
         if !@src_epub.exist? || @regenerate_epub
-          BookToEpub.new.do( @project ) 
+          Forge.new.do( @project ) 
         end
         
         unless @src_epub.exist?

@@ -4,6 +4,7 @@ module EpubForge
   module Action
     class Runner
       attr_accessor :actions_lookup
+      
       def initialize
         reset
       end
@@ -11,9 +12,18 @@ module EpubForge
       def reset
         @args = []
         @run_description = RunDescription.new
-        @actions_lookup = ActionsLookup.new
-        @actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
-        @actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
+      end
+      
+      def load_actions_dirs
+        ThorAction.actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
+        ThorAction.actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
+      end
+      
+      def load_project_machinery
+        if @run_description.project
+          ThorAction.actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
+          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
+        end
       end
             
       def run
@@ -36,81 +46,87 @@ module EpubForge
       end
     
     
-      # The priority for the project directory
-      # 1) explicitly stated directory  --project=/home/andersbr/writ/fic/new_project
-      # 2) the current working directory (if it's an existing project)
-      # 3) the final arg
-      #
-      # At this point, 
+
       protected
       def parse_args
+        @args << "help" if @args.epf_blank?
         @run_description = RunDescription.new
-        @run_description.keyword = @args.shift || "help"
         
-        existing_project = false
-        project_dir = get_explicit_project_option( @args )
+        fetch_project
+        @run_description.quit_on_errors
         
-        # see if the last argument is a project directory
-        unless project_dir || @args.length == 0
-          last_arg = @args.pop
-          unless project_dir = ( Project.is_project_dir?( last_arg ) )
-            @args.push( last_arg )
-          end
-        end
+        load_actions_dirs
+        load_project_machinery
         
-        # see if current working directory is a project directory
-        unless project_dir 
-          cwd = FunWith::Files::FilePath.cwd
-          if Project.is_project_dir?( cwd )
-            project_dir = cwd
-          end
-        end
+        map_command_to_klass
         
-        # At this point, if we're going to find an existing project directory, we'll have found it by now.
-        # Time to load the actions and determine whether the keyword matches an existing action
-        if project_dir && Project.is_project_dir?( project_dir )
-          existing_project = true
-          @run_description.project = Project.new( project_dir )
-          @actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
-          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
-        end
-        
-        map_keyword_to_action
-        
-        if !existing_project && @run_description.klass.project_required?
+        return false unless @run_description.klass
+
+        if @run_description.project.nil? && @run_description.klass.project_required?
           @run_description.errors << "Could not find a project directory, but the action #{@run_description.klass} requires one. Current directory is not an epubforge project."
         else
           @run_description.args = @args
         end
       end
       
-      def map_keyword_to_action
-        actions = actions_lookup.keyword_to_action( @run_description.keyword )
-
-        if actions.length == 1
-          @run_description.klass = actions.first
-        elsif actions.length == 0
-          @run_description.errors << "Unrecognized keyword <#{keyword}>.  Quitting."
-          false
-        else
-          @run_description.errors << "Ambiguous keyword <#{keyword}>.  Did you mean...?\n#{actions.map(&:usage).join('\n')}"
-          false
+      def map_command_to_klass
+        @run_description.klass = ThorAction.command_to_action_classes[@args.first]
+        if @run_description.klass.nil?
+          @run_description.errors << "Unrecognized keyword <#{@args.first}>.  Quitting."
         end
       end
       
-      def get_explicit_project_option( args )
-        proj_opt_regex = /^--project=/
-        
-        proj_opt = args.find do |arg|
-          arg.is_a?(String) && arg.match( proj_opt_regex )
-        end
       
-        if proj_opt
-          args.delete( proj_opt )
-          proj_opt.gsub( proj_opt, '' ).fwf_filepath
-        else
-          false
+      # The priority for the project directory
+      # 1) explicitly stated directory  --project=/home/andersbr/writ/fic/new_project
+      # 2) the arg immediately after the command:subcommand:subsubcommand arg
+      # 3) the current working directory (if it's an existing project)
+      #
+      # As a side-effect, replaces implicit directories with an explicit --project flag as the final argument
+      # because Thor seems to like explicit flags.
+      def fetch_project
+        project_dir =   fetch_project_by_project_flag
+        project_dir ||= fetch_project_by_second_arg
+        project_dir ||= fetch_project_by_current_dir
+
+        if project_dir
+          @run_description.project = Project.new( project_dir )
+          @args.push( "--project=#{project_dir}" )
         end
+      end
+      
+      def fetch_project_by_project_flag
+        project_dir = nil
+        project_flag_regex = /^--proj(ect)?=/
+        @args.each_with_index do |arg, i|
+          if arg.is_a?(String) && arg =~ project_flag_regex
+            project_dir = arg.gsub( project_flag_regex, "" ).epf_remove_surrounding_quotes.fwf_filepath.expand
+            if Project.is_project_dir?( project_dir )
+              @args.delete_at(i)
+            else
+              @run_description.errors << "Project given by flag --project= is not a valid project directory."
+            end
+          end
+        end
+        
+        project_dir
+      end
+      
+      def fetch_project_by_second_arg
+        if Project.is_project_dir?( @args[1] )
+          return @args.delete_at(1)
+        else
+          return nil
+        end
+      end
+      
+      def fetch_project_by_current_dir
+        cwd = FunWith::Files::FilePath.cwd
+        project_dir = (Project.is_project_dir?( cwd ) ? cwd : nil)
+      end
+      
+      def print_help
+        
       end
     end
   end

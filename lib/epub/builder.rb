@@ -19,13 +19,14 @@ module EpubForge
         
     class Builder
       attr_reader :stylesheets
+      attr_reader :project
       
       def initialize project, opts = {}
         puts "--------------- forgin' #{project.filename_for_epub_book} ------------------"
         @project = project
         @config  = project.config
         @book_dir_short = opts[:book_dir] ? opts[:book_dir].split.last.to_s : "book"
-        @book_dir = @project.target_dir.join( @book_dir_short ).fwf_filepath
+        @book_dir = @project.target_dir.join( @book_dir_short ).fwf_filepath.expand
         @config = @project.config
         
         @config.page_orderer = Utils::FileOrderer.new( opts[:page_order] || @config.pages[@book_dir_short] )

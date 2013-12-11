@@ -1,12 +1,12 @@
 module EpubForge
   module Action
     class Init < ThorAction
-      keywords  :init, :initialize, :new
+      include_standard_options
       project_not_required
       
-      desc("do:init", "create a new epubforge project")
-      def do( project, *args )
-        unless project.nil? 
+      desc("init", "create a new epubforge project")
+      def init( *args )
+        unless @project.nil? 
           say_error "Project already exists.  Quitting."
           return false
         end
@@ -111,6 +111,8 @@ module EpubForge
         (@template_options[:title] || "").epf_underscorize + ".epubforge.git"
       end
       
+      # Expects the following arguments: 1:<project directory (shouldn't exist)>, 2: options hash.
+      # Options hash includes: 
       def parse_args( *args )
         @opts = args.last.is_a?(Hash) ? args.pop : {}
         root = args.shift
@@ -128,7 +130,7 @@ module EpubForge
           return false
         end
         
-        @template_to_use = "default"
+        @template_to_use = "default"  # TODO: should turn into an option 
         true
       end
     end

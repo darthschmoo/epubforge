@@ -2,7 +2,7 @@ require 'helper'
 
 Runner = EpubForge::Action::Runner
 
-class TestRunner < Test::Unit::TestCase  
+class TestRunner < EpubForge::TestCase  
   context "Testing argument parsing" do
     setup do
       @runner = Runner.new

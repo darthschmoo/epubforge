@@ -58,6 +58,22 @@ module EpubForge
       @book_dir.glob("chapter-????.*")
     end
     
+    
+    def pages( orderer = nil )
+      case orderer
+      when NilClass
+        orderer = Utils::FileOrderer.new( self.config.pages.book || [] )
+      when Utils::FileOrderer
+        # pass
+      when Array
+        orderer = Utils::FileOrderer.new( orderer )
+      else
+        raise "Project#pages cannot take #{order.class} as an ordering object."
+      end
+      
+      orderer.reorder( @book_dir.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS ) )
+    end
+    
     def load_configuration
       self.install_fwc_config_from_file( config_file )
     end

@@ -6,6 +6,18 @@ class String
   def epf_camelize
     gsub(/(?:^|_)(.)/) { $1.upcase }
   end
+  
+  def epf_decamelize
+    self.gsub( /([a-z])([A-Z])/ ) { $1.downcase + "_" + $2.downcase }.downcase
+  end
+  
+  def epf_remove_surrounding_quotes
+    self.gsub(/(^['"]|['"]$)/)
+  end
+  
+  def epf_remove_surrounding_quotes!
+    self.replace( self.epf_remove_surrounding_quotes )
+  end
 
   # TODO: Need comprehensive list of characters to be protected.
   def epf_backhashed_filename
