@@ -4,7 +4,7 @@ module EpubForge
       include_standard_options
       project_not_required
       
-      desc("init", "create a new epubforge project")
+      desc( "init", "create a new epubforge project" )
       def init( *args )
         unless @project.nil? 
           say_error "Project already exists.  Quitting."
@@ -14,55 +14,74 @@ module EpubForge
         return false unless parse_args( *args )
         
         @template_dir = EpubForge.root.join( "templates", @template_to_use )
-        src_entries = @template_dir.glob( "**", "*" ).map{ |entry|
-          entry.relative_path_from( @template_dir )
-        }
+        # src_entries = @template_dir.glob( :all ).map{ |entry|
+        #           entry.relative_path_from( @template_dir )
+        #         }
+        #         
+        #         self.source_paths.push( @template_dir )
+        #         
         
-        self.source_paths.push( @template_dir )
-        src_dirs = src_entries.select{ |d| @template_dir.join(d).directory? }.uniq
-        
-        for dir in src_dirs
-          empty_directory( self.destination_root_filepath.join( dir ) )
-        end
-        
-        for entry in src_entries - src_dirs
-          case entry.ext
-          when "template"
-            dst = self.destination_root_filepath.join( entry ).without_ext
-            template( entry, dst )
-          when "sequence"
-            @chapter_count ||= @opts[:answers][:chapter_count] if @opts[:answers]
-            @chapter_count ||= ask_prettily("Setting up chapter files.\n  How many chapters will your book have (you can add more later)? >>> ").to_i
-        
-            1.upto( @chapter_count ) do |i|
-              @i = i
-              dst = self.destination_root_filepath.join( entry ).gsub( /%i%/, sprintf( "%04i", @i) ).without_ext
-              template( entry, dst )
-            end
-          when "form"
-            configure_configuration( @opts[:answers] || {} )
-            dst = self.destination_root_filepath.join( entry ).without_ext
-            template( entry, dst, @template_options )
-            say_all_is_well( "Your configuration is all set up!" )
-            say_instruction( "run 'epubforge gitify' to initialize the backup repository." )
-          else
-            copy_file( entry, self.destination_root_filepath.join( entry ) )
-          end
-        end
+        configure_configuration( @opts[:answers] || {} )
+        FunWith::Templates::TemplateEvaluator.write( @template_dir, self.destination_root_filepath, @template_options )
+        # 
+        # 
+        # 
+        # 
+        # 
+        # src_dirs = src_entries.select{ |d| @template_dir.join(d).directory? }.uniq
+        # 
+        # for dir in src_dirs
+        #   puts "creating dir #{dir}"
+        #   empty_directory( self.destination_root_filepath.join( dir ) )
+        #   debugger unless self.destination_root_filepath.join( dir ).directory?
+        #   5
+        # end
+        # 
+        # debugger unless self.destination_root_filepath.directory?
+        # 
+        # for entry in src_entries - src_dirs
+        #   case entry.ext
+        #   when "template"
+        #     dst = self.destination_root_filepath.join( entry ).without_ext
+        #     puts dst.inspect
+        #     puts entry.inspect
+        #     FunWith::Files::FilePath.template( entry, dst )
+        #   when "sequence"
+        #     @chapter_count ||= @opts[:answers][:chapter_count] if @opts[:answers]
+        #     @chapter_count ||= ask_prettily("Setting up chapter files.\n  How many chapters will your book have (you can add more later)? >>> ").to_i
+        # 
+        #     1.upto( @chapter_count ) do |i|
+        #       dst = self.destination_root_filepath.join( entry ).gsub( /%i%/, sprintf( "%04i", i) ).without_ext
+        #       FunWith::Files::FilePath.template( entry, dst, {:i => i} )
+        #     end
+        #   when "form"
+        #     configure_configuration( @opts[:answers] || {} )
+        #     dst = self.destination_root_filepath.join( entry ).without_ext
+        #     FunWith::Files::FilePath.template( entry, dst, @template_options )
+        #     say_all_is_well( "Your configuration is all set up!" )
+        #     say_instruction( "run 'epubforge gitify' to initialize the backup repository." )
+        #   else
+        #     copy_file( entry, self.destination_root_filepath.join( entry ) )
+        #   end
+        # end
       end
+      
+      desc( "new", "create a new epubforge project (alias for 'init')")
+      alias :new :init
       
       protected
       def configure_configuration(opts = {})
         say_instruction( "Don't think too hard about these next few questions.  You can always change your mind by editing settings/config" )
-        
-        opts[:title] ||= ask_prettily("What is the name of your book?")
-        opts[:author] ||= ask_prettily( "What is the name of the author?" )
-        opts[:license] ||= ask_from_menu "What license do you want your book under?", [ "All Rights Reserved", 
-                                                                                     "Creative Commons Non-Commercial, No Derivatives License", 
-                                                                                     "Creative Commons Non-Commercial, Share-Alike License",
-                                                                                     "GNU Free Documentation License",
-                                                                                     "Public Domain",
-                                                                                     "Other" ]
+
+        opts[:book]    ||= {}
+        opts[:book][:title]   ||= ask_prettily( "What is the name of your book?" )
+        opts[:book][:author]  ||= ask_prettily( "What is the name of the author?" )
+        opts[:license] ||= ask_from_menu( "What license do you want your book under?", [ "All Rights Reserved", 
+                                                                                        "Creative Commons Non-Commercial, No Derivatives License", 
+                                                                                        "Creative Commons Non-Commercial, Share-Alike License",
+                                                                                        "GNU Free Documentation License",
+                                                                                        "Public Domain",
+                                                                                        "Other" ] )
         if opts[:license] == "Other"
           opts[:license] = ask_prettily( "Type in the license you wish to use : " )
         end
@@ -80,7 +99,7 @@ module EpubForge
       
       
       
-      def configure_git( opts = {})
+      def configure_git( opts = {} )
         opts[:remote] = "Back up to a remote host."
         opts[:thumb]  = "Back up to an external or thumb drive."
         opts[:backup_type] ||= ask_from_menu( "Where would you like to back up your project to?", 

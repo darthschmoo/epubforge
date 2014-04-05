@@ -7,6 +7,7 @@ module EpubForge
       desc( "forge", "Wraps the project up in a .epub (ebook) file.")
       def forge( *args )
         before_start
+
         builder = EpubForge::Epub::Builder.new( @project, :page_order => @project.config["pages"]["book"] )
 
         builder.build

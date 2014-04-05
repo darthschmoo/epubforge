@@ -75,6 +75,7 @@ module EpubForge
     end
     
     def load_configuration
+      puts "NO CONFIGURATION FILE DETECTED" unless config_file.file?
       self.install_fwc_config_from_file( config_file )
     end
   end

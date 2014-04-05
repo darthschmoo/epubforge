@@ -1,0 +1,30 @@
+---
+:answers:
+  :chapter: !ruby/range
+    begin: 1
+    end: 3
+    excl: false
+  :book:
+    :author: Wilberforce Poncer
+    :title: The Courtesan of Fate
+    :cover: 
+  :license: You Owe Me All the Money Limited License, v. 2.1
+  :use_git: true
+  :git:
+    :repo_id: abcdef0123456789
+    :backup_type: Back up to a remote host.
+    :host: myhost.somewhere.com
+    :user: andersbr
+    :repo: /home/andersbr/git
+  :character:
+  - :age: '27'
+    :name: Winifred Burkle
+    :summary: Adorkable whiz kid.
+    :description: Pylea sucks.  Never going back.
+    :name_for_file: winifred_burkle
+    
+  - :age: '324'
+    :name: Angel
+    :summary: Bitey vampire
+    :description: Broody as hell.
+    :name_for_file: angel

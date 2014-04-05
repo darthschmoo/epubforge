@@ -82,7 +82,7 @@ module EpubForge
       
       def self.format_from_filename( filename )
         ext = filename.fwf_filepath.ext
-        ext.epf_blank? ? :unknown : ext.to_sym
+        ext.fwf_blank? ? :unknown : ext.to_sym
       end
     end
     

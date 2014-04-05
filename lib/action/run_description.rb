@@ -24,6 +24,8 @@ module EpubForge
         if self.runnable?
           handle_errors do
             @args[0] = (@args[0]).split(":").last
+            puts "Run Description: #{@args.inspect}"
+            # debugger if @args.first == "init"
             @execution_returned = self.klass.start( @args )
           end
         end
@@ -59,7 +61,7 @@ module EpubForge
       end
       
       def errors?
-        !@errors.epf_blank?
+        !@errors.fwf_blank?
       end
       
       def success?

@@ -1,30 +1,31 @@
-# I don't know if mentioning them in the Gemfile automatically requires them.
-# Let's find out.
-# require 'readline'
-# require 'singleton'
-# require 'builder'
-require 'thor'
-require 'optparse'
-require 'nokogiri'
-require 'xdg'            # keep configuration files in sane places
-require 'debugger'
-require 'erb'
-require 'singleton'
-require 'builder'
-require 'pathname'
-require 'tmpdir'         # Dir.mktmpdir
-require 'net/http'
-require 'open-uri'            # needed by Utils::Downloader
-require 'yaml'
-require 'rbconfig'
-require 'fun_with_files'
-require 'fun_with_configurations'
+%w( thor
+    optparse
+    nokogiri
+    xdg
+    debugger
+    erb
+    singleton
+    builder
+    pathname
+    tmpdir
+    rbconfig
+    fun_with_files
+    fun_with_templates
+    fun_with_configurations
+    fun_with_string_colors ).map{|requirement| require requirement}
+    
+    
+FunWith::StringColors.activate
+String.colorize( true )
 
-EpubForge = Module.new
-EpubForge::DEBUG = false
+module EpubForge
+  USER_SETTINGS = XDG['CONFIG_HOME'].fwf_filepath( "epubforge" )
+  DEBUG = false
+end
+
 # EpubForge.root responds with the gem directory
 FunWith::Files::RootPath.rootify( EpubForge, __FILE__.fwf_filepath.dirname.up )
-EpubForge::VERSION = EpubForge.root("VERSION").read
+FunWith::VersionStrings.versionize( EpubForge )
 
 def debugger?
   debugger if debugging?
@@ -34,28 +35,27 @@ def debugging?
   EpubForge::DEBUG
 end
 
+# EpubForge.root("lib", "epub", "assets", "page").requir
+EpubForge.root("lib").requir
+# require_relative 'core_extensions/array'
+# require_relative 'core_extensions/kernel'
+# require_relative 'core_extensions/nil_class'
+# require_relative 'core_extensions/object'
+# require_relative 'core_extensions/string'
 
-require_relative 'core_extensions/array'
-require_relative 'core_extensions/kernel'
-require_relative 'core_extensions/nil_class'
-require_relative 'core_extensions/object'
-require_relative 'core_extensions/string'
-
-
-require_relative 'utils/directory_builder'
-require_relative 'utils/downloader'
-require_relative 'utils/file_orderer'
-require_relative 'utils/misc'
-require_relative 'utils/class_loader'
-require_relative 'utils/action_loader'
-require_relative 'utils/template_evaluator'
+# require_relative 'utils/directory_builder'
+# require_relative 'utils/downloader'
+# require_relative 'utils/file_orderer'
+# require_relative 'utils/misc'
+# require_relative 'utils/class_loader'
+# require_relative 'utils/action_loader'
+# require_relative 'utils/template_evaluator'
 
 
 
 module EpubForge
   ACTIONS_DIR  = EpubForge.root.join( "config", "actions" )
   TEMPLATES_DIR  = EpubForge.root.join( "templates" )
-  USER_SETTINGS = XDG['CONFIG_HOME'].to_s.fwf_filepath.join( "epubforge" )
   USER_GLOBALS_FILE = USER_SETTINGS.join( "globals.rb" )
   USER_ACTIONS_DIR  = USER_SETTINGS.join( "actions" )
   
@@ -65,7 +65,7 @@ end
 
 EpubForge.install_fwc_config_from_file( EpubForge::USER_GLOBALS_FILE )
 
-EpubForge.config.activation_key = rand(20**32).to_s(16).gsub(/(.{5})/, '\1-')[0..-2]
+# EpubForge.config.activation_key = rand(20**32).to_s(16).gsub(/(.{5})/, '\1-')[0..-2]
 
 require_relative 'utils/html_translator'
 require_relative 'utils/html_translator_queue'

@@ -1,0 +1,15 @@
+<%= @character[:name] %>
+<%= "=" * (@character[:name] || "").length %>
+
+Summary
+-------
+
+<%= @character[:summary] %>
+
+Description
+-----------
+
+Age: <%= @character[:age] %>
+
+<%= @character[:description] %>
+

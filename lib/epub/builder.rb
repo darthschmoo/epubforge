@@ -225,7 +225,7 @@ module EpubForge
    
       # zips up contents
       def build
-        Utils::DirectoryBuilder.create( @scratch_dir ) do |build|
+        FunWith::Files::DirectoryBuilder.create( @scratch_dir ) do |build|
           
           build.file( "mimetype", mimetype )
           
@@ -245,7 +245,7 @@ module EpubForge
               end
             end
           
-            unless @images.epf_blank?
+            unless @images.fwf_blank?
               build.dir "Images" do
                 for img in @images
                   build.copy( img.filename )
@@ -253,7 +253,7 @@ module EpubForge
               end
             end
           
-            unless @stylesheets.epf_blank?
+            unless @stylesheets.fwf_blank?
               build.dir "Styles" do
                 for sheet in @stylesheets
                   build.file( sheet.name, sheet.contents )
@@ -261,7 +261,7 @@ module EpubForge
               end
             end
             
-            unless @fonts.epf_blank?
+            unless @fonts.fwf_blank?
               build.dir "Fonts" do
                 for font in @fonts
                   build.copy( font.filename )
@@ -290,7 +290,7 @@ module EpubForge
           b.head do 
             b.title( @metadata["name"] )
             for sheet in @stylesheets
-              b.link :href => sheet.link.relative_path_from("/OEBPS/Text"), :media => "screen", :rel => "stylesheet", :type => "text/css"
+              b.link :href => sheet.link.relative_path_from("/OEBPS/Text"), :media => "all", :rel => "stylesheet", :type => "text/css"
             end
           end
     

@@ -14,18 +14,6 @@ module EpubForge
         @run_description = RunDescription.new
       end
       
-      def load_actions_dirs
-        ThorAction.actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
-        ThorAction.actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
-      end
-      
-      def load_project_machinery
-        if @run_description.project
-          ThorAction.actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
-          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
-        end
-      end
-            
       def run
         @run_description.run
         @run_description
@@ -49,16 +37,20 @@ module EpubForge
 
       protected
       def parse_args
-        @args << "help" if @args.epf_blank?
+        @args << "help" if @args.fwf_blank?
         @run_description = RunDescription.new
         
+        load_default_and_user_actions_dirs
+        map_command_to_klass                                 # if it's one of the default actions
+
         fetch_project
+        load_project_machinery
+
+        map_command_to_klass unless @run_description.klass  # if it's a project-specific action
+        
         @run_description.quit_on_errors
         
-        load_actions_dirs
-        load_project_machinery
         
-        map_command_to_klass
         
         return false unless @run_description.klass
 
@@ -127,6 +119,18 @@ module EpubForge
       
       def print_help
         
+      end
+      
+      def load_default_and_user_actions_dirs
+        ThorAction.actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
+        ThorAction.actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
+      end
+      
+      def load_project_machinery
+        if @run_description.project
+          ThorAction.actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
+          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
+        end
       end
     end
   end

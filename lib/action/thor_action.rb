@@ -41,13 +41,18 @@ module EpubForge
       
       # eventually replace description
       def desc( usage, description, options = {} )
+        verbose = defined?(EpubForge::Action::Character)  && self == EpubForge::Action::Character
+        puts "--------------IN DESC()----------------"   if verbose
+        puts self.method_options.inspect                 if verbose
         self.command_to_action_classes[usage] = self
         super( usage, description, options )
+        puts self.method_options.inspect                 if verbose
+        puts "--------------END DESC()----------------"  if verbose
       end
 
       # TODO: Get rid of this
       def keywords( *args )
-        if args.epf_blank?
+        if args.fwf_blank?
           @keywords ||= []
         else 
           @keywords = args.map(&:to_s)
@@ -227,11 +232,21 @@ module EpubForge
       end
       
       def before_start
-        @project = @options[:project]
-        @debug   = @options[:debug]
-        @help    = @options[:help]
-        @verbose = @options[:verbose]
+        variablize_options( :project, :debug, :help, :verbose )
+                # @project = @options[:project]
+                # @debug   = @options[:debug]
+                # @help    = @options[:help]
+                # @verbose = @options[:verbose]
         @project = Project.new( @project ) unless @project.nil?
+      end
+      
+      # takes a series of symbols or an array of symbols
+      # for each symbol, creates an instance var from @options[:symbol]
+      def variablize_options( *symbols )
+        symbols.flatten!  # in case someone passes an array
+        for sym in symbols
+          self.instance_variable_set( :"@#{sym}", @options[sym] )
+        end
       end
     end
   end

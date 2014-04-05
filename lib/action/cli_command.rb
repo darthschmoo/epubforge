@@ -27,7 +27,7 @@ module EpubForge
       protected
       def local_exec( cmd )
         cmd = (cmd == :undo ? @undo : @command)
-        return pseudo_success if cmd.epf_blank?
+        return pseudo_success if cmd.fwf_blank?
 
         execute_locally = @local_dir ? "cd #{@local_dir} && " : ""
         
@@ -39,7 +39,7 @@ module EpubForge
       
       def remote_exec( cmd )
         cmd = (cmd == :undo ? @undo : @command)
-        return pseudo_success if cmd.epf_blank?
+        return pseudo_success if cmd.fwf_blank?
 
         execute_remotely = (@remote_dir ? "cd #{@remote_dir} && " : "") + cmd
 

@@ -1,8 +1,4 @@
 class String
-  def epf_blank?
-    self.strip.length == 0  
-  end
-  
   def epf_camelize
     gsub(/(?:^|_)(.)/) { $1.upcase }
   end
@@ -28,7 +24,7 @@ class String
     nocaps = %w(a and at be but in is nor of or so teh the to with)
     upcase = %w(Ii Ii: Iii M.d.)       # TODO:  ick
 
-    words = self.downcase.gsub(/\u00a0/, ' ').split(/(\s|\n)+/).map(&:strip).delete_if(&:epf_blank?)
+    words = self.downcase.gsub(/\u00a0/, ' ').split(/(\s|\n)+/).map(&:strip).delete_if(&:fwf_blank?)
     first_word = true
 
     for word in words

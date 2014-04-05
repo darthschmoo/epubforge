@@ -4,10 +4,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title></title>
+  <title><%= @book[:title] %>, by <%= @book[:author] %></title>
 </head>
 
 <body>
-  <p><img class="cover" alt="The Improbable Rise of Singularity Girl, by Bryce Anderson" src="../Images/cover.jpg" /></p>
+  <p><img class="cover" alt="<%= @book[:title] %>, by <%= @book[:author] %>" src="<%= @book[:cover].nil? ? "../Images/cover.jpg" : @book[:cover].path %>" /></p>
 </body>
 </html>

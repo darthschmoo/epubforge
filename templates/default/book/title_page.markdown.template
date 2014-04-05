@@ -1,4 +1,5 @@
-The Adventures of Writer-Man!
-=============================
+<%= @book[:title] %>
+<%= "=" * (@book[:title] || "===").length %>
 
-by Annotatia Von Helmermurmer
+by <%= @book[:author] %>
+
