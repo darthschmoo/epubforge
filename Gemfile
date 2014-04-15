@@ -9,21 +9,22 @@ source "http://rubygems.org"
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 
-gem "xdg"
-gem "builder"
+gem "xdg", "~> 2"
+gem "builder", "~> 3"
 gem "nokogiri", "~> 1.5"
-gem "thor"
+gem "thor", "~> 0"
 # gem "configurator2"
-gem 'fun_with_files'
-gem 'fun_with_configurations'
-gem 'fun_with_templates'
-gem 'fun_with_string_colors'
+gem 'fun_with_gems', "~> 0.0"
+gem 'fun_with_configurations', "~> 0.0"
+gem 'fun_with_templates', "~> 0.0"
+gem 'fun_with_string_colors', "~> 0.0"
 
 group :development do
   gem "shoulda", "~> 3.5"
   gem "rdoc", "~> 3.12"
   gem "bundler", "~> 1.0"
-  gem "jeweler", "~> 2.0.1"
-  gem "simplecov", ">= 0.8"
-  gem "debugger"
+  gem "jeweler", "~> 2.0"
+  gem "simplecov", "~> 0", ">= 0.8"
+  gem "debugger", "~> 1", ">= 1.6"
+  gem "fun_with_testing", "~> 0.0", ">= 0.0.2"
 end

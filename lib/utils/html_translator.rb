@@ -78,7 +78,7 @@ module EpubForge
         if @custom_proc
           result += @custom_proc.call( filename, *opts )
         elsif @cmd
-          exec_string = cmd.gsub( /\{\{f\}\}/, filename.to_s )
+          exec_string = cmd.gsub( /\{\{f\}\}/, "\"#{filename.to_s}\"" )
           opts = @opts if opts.fwf_blank?
           exec_string.gsub!( /\{\{o\}\}/, opts )
           exec_string.gsub!( /\{\{x\}\}/, executable )

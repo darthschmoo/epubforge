@@ -1,7 +1,7 @@
 require 'bundler'
 require 'shoulda'
 require 'stringio'
-require 'fun_with_testing'
+# require 'fun_with_testing'
 
 begin
   Bundler.setup(:default, :development)
@@ -12,27 +12,16 @@ rescue Bundler::BundlerError => e
 end
 
 require 'test/unit'
-
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'epubforge'
+require 'fun_with_testing'
 
 module EpubForge
-  class TestCase < Test::Unit::TestCase
+  class TestCase < FunWith::Testing::TestCase
     include EpubForge::Utils
     include FunWith::Testing::Assertions::Basics
     include FunWith::Testing::Assertions::FunWithFiles
     
     protected
-    def self._context(*args, &block)
-      puts "IGNORING TEST SET #{args.inspect}".paint(:bold, :bg_red)
-    end
-
-    def self._should(*args, &block)
-      puts "IGNORING TEST #{args.inspect}".paint(:red, :bold, :reverse)
-    end
-
-    
     def create_project( verbose = false, &block )
       verbose = true
       FunWith::Files::DirectoryBuilder.tmpdir do |d|
@@ -87,7 +76,7 @@ module EpubForge
         when :print
           puts "Runner.new.exec() args = #{args.inspect}"
           puts error.message
-          puts "\t" + error.backtrace.map{|line| "\t#{line}"}.join("\n")
+          puts "\t" + error.backtrace.map{ |line| "\t#{line}"}.join("\n")
           puts "\n"
         when :ignore
           # do nothing

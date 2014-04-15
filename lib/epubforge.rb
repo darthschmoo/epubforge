@@ -9,7 +9,7 @@
     pathname
     tmpdir
     rbconfig
-    fun_with_files
+    fun_with_gems
     fun_with_templates
     fun_with_configurations
     fun_with_string_colors ).map{|requirement| require requirement}
