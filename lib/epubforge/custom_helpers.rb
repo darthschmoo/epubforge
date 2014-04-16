@@ -63,4 +63,3 @@ module EpubForge
   end
 end
 
-EpubForge.extend( EpubForge::CustomHelpers )
