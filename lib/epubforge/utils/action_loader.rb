@@ -1,7 +1,8 @@
-module EpubForge
-  module Utils
-    class ActionLoader < ClassLoader
-      namespace( "EpubForge::Action" )
-    end
-  end
-end
+# module EpubForge
+#   module Action
+#     class Registry
+#       include FunWith::Patterns::Loader
+#       alias :loader_pattern_registry_key :keyword
+#     end
+#   end
+# end

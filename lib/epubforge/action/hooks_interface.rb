@@ -7,12 +7,12 @@ module EpubForge
       end
       
       def run_hooks( hookset )
-        super( hookset ) unless self == ThorAction
+        super( hookset ) unless self == Action
         
       end
         
       def self.included( base )
-        if base == ThorAction
+        if base == Action
           base.add_hook(:before) do
             @project = @options[:project]
           end

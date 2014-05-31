@@ -13,6 +13,8 @@ gem "xdg", "~> 2"
 gem "builder", "~> 3"
 gem "nokogiri", "~> 1.5"
 gem "thor", "~> 0"
+gem "kramdown", ">= 1.3"
+
 # gem "configurator2"
 gem 'fun_with_gems', "~> 0.0"
 gem 'fun_with_configurations', "~> 0.0"

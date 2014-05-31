@@ -1,6 +1,6 @@
 module EpubForge
   module Action
-    class <%= @class_name %> < ThorAction
+    class <%= @class_name %> < Action
       
       <% for action in @actions %>
       desc( "<%= @slug %>:<%= action %>", "do action <%= action %>" )

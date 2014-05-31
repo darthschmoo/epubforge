@@ -3,7 +3,7 @@ require 'helper'
 class TestBookTemplates < EpubForge::TestCase
   context "testing default templates" do
     setup do
-      @template_dir = EpubForge.root( "templates", "default" )
+      @template_dir = EpubForge.root( "templates", "project" )
     end
     
     should "properly create files from default templates" do

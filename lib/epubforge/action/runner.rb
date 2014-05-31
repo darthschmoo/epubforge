@@ -40,30 +40,30 @@ module EpubForge
         @args << "help" if @args.fwf_blank?
         @run_description = RunDescription.new
         
-        load_default_and_user_actions_dirs
-        map_command_to_klass                                 # if it's one of the default actions
-
+        # map_command_to_action                                 # if it's one of the default actions
         fetch_project
         load_project_machinery
 
-        map_command_to_klass unless @run_description.klass  # if it's a project-specific action
+        map_command_to_action # unless @run_description.action  # check for project-specific actions
         
         @run_description.quit_on_errors
         
         
         
-        return false unless @run_description.klass
+        return false unless @run_description.action
 
-        if @run_description.project.nil? && @run_description.klass.project_required?
-          @run_description.errors << "Could not find a project directory, but the action #{@run_description.klass} requires one. Current directory is not an epubforge project."
+        if @run_description.project.nil? && @run_description.action.project_required?
+          @run_description.errors << "Could not find a project directory (current directory not a project, no project given as an argument), but the action #{@run_description.action} requires one."
         else
           @run_description.args = @args
         end
       end
       
-      def map_command_to_klass
-        @run_description.klass = ThorAction.command_to_action_classes[@args.first]
-        if @run_description.klass.nil?
+      # TODO:  Need to determine if the project is there, and if it's needed, then load all the
+      # actions at once.  
+      def map_command_to_action
+        @run_description.action = Action2[ @args.first ]
+        if @run_description.action.nil?
           @run_description.errors << "Unrecognized keyword <#{@args.first}>.  Quitting."
         end
       end
@@ -75,7 +75,7 @@ module EpubForge
       # 3) the current working directory (if it's an existing project)
       #
       # As a side-effect, replaces implicit directories with an explicit --project flag as the final argument
-      # because Thor seems to like explicit flags.
+      # because Thor seems to like explicit flags.  Though I'm moving away from Thor.  
       def fetch_project
         project_dir =   fetch_project_by_project_flag
         project_dir ||= fetch_project_by_second_arg
@@ -118,18 +118,13 @@ module EpubForge
       end
       
       def print_help
-        
-      end
-      
-      def load_default_and_user_actions_dirs
-        ThorAction.actions_lookup.add_actions( EpubForge::ACTIONS_DIR )
-        ThorAction.actions_lookup.add_actions( EpubForge::USER_ACTIONS_DIR ) if EpubForge::USER_ACTIONS_DIR.directory?
       end
       
       def load_project_machinery
-        if @run_description.project
-          ThorAction.actions_lookup.add_actions( @run_description.project.settings_folder( "actions" ) )
-          Utils::Htmlizer.instance.add_htmlizers( @run_description.project.settings_folder( "htmlizers.rb" ) )
+        if proj = @run_description.project
+          Action2.loader_pattern_load_from_dir( proj.settings_folder( "actions" ) )
+          Utils::HtmlTranslator.loader_pattern_load_from_dir( proj.settings_folder( "html_translators" ) )
+          Utils::Converter.loader_pattern_load_from_dir( proj.settings_folder( "converters" ) )
         end
       end
     end

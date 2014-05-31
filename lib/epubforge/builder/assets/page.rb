@@ -1,14 +1,22 @@
 module EpubForge
-  module Epub
+  module Builder
     module Assets
       class Page < Asset
-        attr_reader :html, :original_file, :title, :project, :media_type, :dest_extension, :dest_filename
-        attr_reader :section_id
+        attr_reader :dest_extension, 
+                    :dest_filename,
+                    :html, 
+                    :media_type, 
+                    :original_file, 
+                    :project,
+                    :section_id,
+                    :source_format,
+                    :title
 
         def initialize file, metadata, project
           raise "NIL" if project.nil?
           
           @original_file = file.fwf_filepath
+          @source_format = @original_file.ext.to_sym
         
           @metadata = metadata
           @project  = project
@@ -25,7 +33,7 @@ module EpubForge
         end
         
         def get_html
-          @html = Utils::Htmlizer.instance.translate( @original_file )
+          @html = Utils::HtmlTranslator.translate( @original_file )
         end
         
         def get_title

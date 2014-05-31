@@ -1,5 +1,5 @@
 module EpubForge
-  module Epub
+  module Builder
     module Assets
       class Asset
         def media_type

@@ -1,43 +1,44 @@
 module EpubForge
   module Action
     module SharedActionInterface
-      def actions_lookup
-        if self == ThorAction
-          @actions_lookup ||= ActionsLookup.new
-        else
-          ThorAction.actions_lookup
-        end
-      end
+      # def actions_lookup
+      #   if self == Action
+      #     @actions_lookup ||= ActionsLookup.new
+      #   else
+      #     Action.actions_lookup
+      #   end
+      # end
       
-      def register_action_subclass( klass )
-        if self == ThorAction
-          @subclasses ||= []
-          @subclasses = (@subclasses + [klass]).uniq
-        else
-          ThorAction.register_action_subclass( klass )
-        end
-      end
+      # def register_action_subclass( klass )
+      #   if self == Action
+      #     @subclasses ||= []
+      #     @subclasses = (@subclasses + [klass]).uniq
+      #   else
+      #     Action.register_action_subclass( klass )
+      #   end
+      # end
       
-      def subclasses
-        if self == ThorAction
-          @subclasses
-        else
-          ThorAction.subclasses
-        end
-      end
+      # def subclasses
+      #   if self == Action
+      #     @subclasses
+      #   else
+      #     Action.subclasses
+      #   end
+      # end
       
-      def command_to_action_classes
-        if self == ThorAction
-          @command_klass_lookup ||= {}
-        else
-          ThorAction.command_to_action_classes
-        end
-      end
+      # def command_to_action_classes
+      #   if self == Action
+      #     @command_klass_lookup ||= {}
+      #   else
+      #     Action.command_to_action_classes
+      #   end
+      # end
       
-      def description( str = nil )
-        @description = str if str
-        @description
-      end
+      get_and_set( :description )
+      # def description( str = nil )
+      #   @description = str if str
+      #   @description
+      # end
       
       # eventually replace description
       def desc( usage, description, options = {} )
@@ -50,21 +51,30 @@ module EpubForge
         puts "--------------END DESC()----------------"  if verbose
       end
 
-      # TODO: Get rid of this
-      def keywords( *args )
-        if args.fwf_blank?
-          @keywords ||= []
-        else 
-          @keywords = args.map(&:to_s)
-        end
-        
-        @keywords
-      end
+      # # TODO: Get rid of this
+      # def keywords( *args )
+      #   if args.fwf_blank?
+      #     @keywords ||= []
+      #   else 
+      #     @keywords = args.map(&:to_s)
+      #   end
+      #   
+      #   @keywords
+      # end
       
-      def usage( str = nil )
-        @usage = str if str
-        @usage
-      end
+      # If given one arg, sets keyword
+      # if given no args, fetches keyword
+      get_and_set( :keyword, :usage )      # 
+            # def keyword( k = nil )
+            #   @keyword = k unless k.nil?
+            #   @keyword
+            # end
+            # 
+            # 
+            # def usage( str = nil )
+            #   @usage = str if str
+            #   @usage
+            # end
       
       def project_required?
         @project_required = true if @project_required.nil?
@@ -88,11 +98,11 @@ module EpubForge
       end
     end
     
-    class ThorAction < Thor
-      def self.inherited( subclass )
-        self.register_action_subclass( subclass )
-        subclass.include_standard_options
-      end
+    class Action < Thor
+      # def self.inherited( subclass )
+      #   self.register_action_subclass( subclass )
+      #   subclass.include_standard_options
+      # end
       
       include Thor::Actions
       extend SharedActionInterface
@@ -105,6 +115,9 @@ module EpubForge
       MAGENTA   = Thor::Shell::Color::MAGENTA
       ON_YELLOW = Thor::Shell::Color::ON_YELLOW
       ON_BLUE   = Thor::Shell::Color::ON_BLUE
+      
+      
+      
       
       
       protected      
@@ -147,9 +160,9 @@ module EpubForge
         end
         
         choice_text = ""
-        choices.each_with_index{ |choice,i|
+        choices.each_with_index do |choice,i|
           choice_text << "\t\t#{i}) #{choice.first}\n" 
-        }
+        end
         
         selection = ask( "#{statement}\n\tChoices:\n#{choice_text}>>> ", BLUE )
         choices[selection.to_i].last
@@ -158,6 +171,8 @@ module EpubForge
       def ask_prettily( statement )
         ask( statement, BLUE )
       end
+
+
       
       # hope this doesn't break anything.  Sure enough, it broke a lot of things.
       # def destination_root=( root )
@@ -165,16 +180,6 @@ module EpubForge
       #   @destination_stack << (root ? root.fwf_filepath.expand : '')
       # end
 
-      # Instead, use these instead of destination_root.  Thor gets strings instead of
-      # filepaths, like it wants, and I get filepaths instead of strings, like I want.
-      def destination_root_filepath
-        self.destination_root.fwf_filepath
-      end
-
-      def destination_root_filepath=(root)
-        self.destination_root = root.to_s
-      end
-      
       def executable_installed?( name )
         name = name.to_sym
         
@@ -223,7 +228,7 @@ module EpubForge
       end
       
       def project_already_gitted?
-        @project.target_dir.join( ".git" ).directory?
+        @project.root_dir.join( ".git" ).directory?
       end
       
       def quit_with_error( msg, errno = -1 )

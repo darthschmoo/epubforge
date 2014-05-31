@@ -1,5 +1,4 @@
 require 'helper'
-require 'thor'
 
 class TestEpubforge < EpubForge::TestCase  # 
   context "Testing a few basic commands" do
@@ -31,7 +30,7 @@ class TestEpubforge < EpubForge::TestCase  #
             report = EpubForge::Action::Runner.new.exec( "wc", @project_dir ).execution_returned
             assert_kind_of Hash, report
             assert_equal 122, report["Book"]
-            assert_equal 152, report["Today"]
+            assert_equal 157, report["Today"]
             assert @project_dir.join( EpubForge::Project::SETTINGS_FOLDER, EpubForge::Action::WordCount::WORD_COUNT_FILE ).exist?
           end
         end  
@@ -46,7 +45,8 @@ class TestEpubforge < EpubForge::TestCase  #
           end
           
           assert_match /Error\(s\) trying to complete the requested action/, printout
-          assert_match /Current directory is not an epubforge project/, printout
+          puts printout.paint(:red, :invert, :white)
+          assert_match /Could not find a project directory/, printout
         end  
       end
       
@@ -55,12 +55,9 @@ class TestEpubforge < EpubForge::TestCase  #
           # printout = EpubForge.collect_stdout() do    # .collect_stdout(STDOUT) to see what's going on
           #             EpubForge::Action::Runner.new.exec( "forge", @project_dir )
           #           end
-                     
-          puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% READY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%".paint(:red, :invert)
-          
           @runner_exec_errors_action = :raise
           
-          runner_exec( "forge", @project_dir )
+          runner_exec( "epub", @project_dir )
           raise @run_description.errors.first if @run_description.errors? # , "running forge caused errors (#{run_desc.errors.length})"
           
           assert_file @ebook_file, "Ebook was not created"
@@ -107,7 +104,7 @@ class TestEpubforge < EpubForge::TestCase  #
                 assert_equal 1, toc.grep( /DOCTYPE/ ).length
                 assert_equal 4, toc.grep( /meta name=/ ).length
                 
-                section_count = EpubForge.root( "templates", "default", "book" ).glob( :ext => ["template", "markdown"] ).length + @chapter_count - 1
+                section_count = EpubForge.root( "templates", "project", "book" ).glob( :ext => ["markdown", "template"] ).length + @chapter_count - 1
                 assert_equal section_count, toc.grep( /xhtml/ ).length
                 assert_equal 2, toc.grep( /#{@book_title}/ ).length
                 
@@ -121,7 +118,7 @@ class TestEpubforge < EpubForge::TestCase  #
       
       should "create an .epub of the notes directory" do
         create_project do
-          EpubForge::Action::Runner.new.exec( "forge:notes", @project_dir )
+          EpubForge::Action::Runner.new.exec( "epub:notes", @project_dir )
           assert @notes_file.file?
           assert ! @notes_file.empty?
         end

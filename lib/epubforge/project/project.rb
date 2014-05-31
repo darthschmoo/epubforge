@@ -4,29 +4,26 @@ module EpubForge
     CONFIG_FILE_NAME = "config.rb"
     PROJECT_ACTIONS_DIRECTORY = "actions"
 
-    attr_reader :target_dir, :config_file, :config, :book_dir,
-                :notes_dir, :project_basename, :filename_for_epub_book, 
-                :filename_for_mobi_book, :filename_for_epub_notes, 
-                :filename_for_mobi_notes, :actions_dir
+    attr_reader :root_dir, :config_file, :config, :book_dir,
+                :notes_dir, :project_basename, :filename_for_book, 
+                :filename_for_notes, :actions_dir
                 
-    def initialize( target_dir )
-      @target_dir = FunWith::Files::FilePath.new( target_dir ).expand
+    def initialize( root_dir )
+      @root_dir = FunWith::Files::FilePath.new( root_dir ).expand
       
       load_configuration
 
-      @notes_dir = config.notes_dir || @target_dir.join( "notes" )
-      @book_dir  = config.book_dir  || @target_dir.join( "book" )
+      @notes_dir = config.notes_dir || @root_dir.join( "notes" )
+      @book_dir  = config.book_dir  || @root_dir.join( "book" )
     
       @project_basename = default_project_basename
-      @filename_for_epub_book = @target_dir.join( "#{default_project_basename}.epub" )
-      @filename_for_mobi_book = @target_dir.join( "#{default_project_basename}.mobi" )
-      @filename_for_epub_notes = @target_dir.join( "#{default_project_basename}.notes.epub" )
-      @filename_for_mobi_notes = @target_dir.join( "#{default_project_basename}.notes.mobi" )
+      @filename_for_book = @root_dir.join( "#{default_project_basename}" )
+      @filename_for_notes = @root_dir.join( "#{default_project_basename}.notes" )
     end 
     
     # shorthand string that 'names' the project, like the_vampire_of_the_leeky_hills.  Variable-ish, used within filenames
     def default_project_basename
-      config.filename || @target_dir.basename.to_s.gsub( /\.epubforge$/ , '' )
+      config.filename || @root_dir.basename.to_s.gsub( /\.epubforge$/ , '' )
     end
 
     # TODO: should test be more definitive?
@@ -38,11 +35,11 @@ module EpubForge
     end
     
     def project_exists?
-      @target_dir.exist? && config_file.exist?
+      @root_dir.exist? && config_file.exist?
     end
     
     def settings_folder(*args)
-      @settings_folder ||= @target_dir.join( SETTINGS_FOLDER )
+      @settings_folder ||= @root_dir.join( SETTINGS_FOLDER )
       @settings_folder.join( *args )
     end
     
@@ -71,12 +68,20 @@ module EpubForge
         raise "Project#pages cannot take #{order.class} as an ordering object."
       end
       
-      orderer.reorder( @book_dir.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS ) )
+      orderer.reorder( @book_dir.glob( ext: EpubForge::Builder::PAGE_FILE_EXTENSIONS ) )
     end
     
     def load_configuration
       puts "NO CONFIGURATION FILE DETECTED" unless config_file.file?
-      self.install_fwc_config_from_file( config_file )
+      
+      begin
+        self.install_fwc_config_from_file( config_file )
+        true
+      rescue SyntaxError => e
+        puts "Syntax Error in project configuration file #{config_file}. Quitting.".paint(:red)
+        puts e.message
+        exit(-1)
+      end
     end
   end
 end

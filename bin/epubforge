@@ -6,5 +6,5 @@ exec_is_in             = File.expand_path( File.dirname(__FILE__) )
 epubforge_loader_file  = File.join( exec_is_in, "..", "lib", "epubforge" )
 
 require epubforge_loader_file
-  
+
 EpubForge::Action::Runner.new.exec( *ARGV )

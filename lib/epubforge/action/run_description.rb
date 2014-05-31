@@ -5,7 +5,7 @@ module EpubForge
                     :project,
                     :namespace,
                     :subcommand,
-                    :klass,
+                    :action,
                     :errors,
                     :state,
                     :execution_returned
@@ -13,9 +13,7 @@ module EpubForge
       def initialize
         @args = nil
         @project = nil
-        @namepace = nil
-        @subcommand = nil
-        @klass = nil
+        @action = nil
         @errors = []
         @state = :initialized
       end
@@ -23,10 +21,12 @@ module EpubForge
       def run
         if self.runnable?
           handle_errors do
-            @args[0] = (@args[0]).split(":").last
             puts "Run Description: #{@args.inspect}"
-            # debugger if @args.first == "init"
-            @execution_returned = self.klass.start( @args )
+            @args.shift if @args.first == self.action.keyword  # TODO: Remove this arg before getting here
+            
+            # If there is a project, it is sent to the action's execution as the first argument
+            @args.unshift( self.project ) if self.project
+            @execution_returned = self.action.run( *@args )
           end
         end
 
@@ -52,7 +52,8 @@ module EpubForge
         if self.errors?
           self.finish
           self.report_errors
-          exit( -1 )
+          
+          exit( -1 ) unless EpubForge.gem_test_mode?
         end
       end
       
@@ -78,7 +79,7 @@ module EpubForge
       
       def to_s
         str = "RunDescription:\n"
-        [ :args, :project, :namespace, :subcommand, :klass, :errors, :state ].each do |data|
+        [ :args, :project, :action, :errors, :state ].each do |data|
           str << "#{data} : #{self.send(data).inspect}\n"
         end
 

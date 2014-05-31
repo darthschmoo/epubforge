@@ -9,16 +9,27 @@ end
 
 filename "<%= (@book[:title] || "my_book").epf_underscorize %>"            # The default filename for your ebook (no extension).
 
-<% if @git %>  
 ############### GOT GIT? #####################################
+#
+# settings to allow epubforge to interact with a git repository.  It's a way to back up your story.
+# I hope eventually to add some basic branching support (for folks who don't want to use git directly).
+# If your repo is on a thumb drive, please make sure it's plugged in.
+<% if @git %>  
 git do
   repo_folder  "<%= @git[:repo] %>"
   remote_host  "<%= @git[:host] %>"
   remote_user  "<%= @git[:user] %>"
   repo_id      "<%= @git[:repo_id] %>"
 end
-############### /GOT GIT? #####################################
+<% else %>
+# git do
+#   repo_folder  "/path/to/folder"
+#   remote_host  "my.hostname.com"
+#   remote_user  "myusername"
+#   repo_id      "not sure we're using this"
+# end
 <% end %>
+############### /GOT GIT? #####################################
 
 
 # Any pages not listed here will be added
@@ -27,21 +38,28 @@ end
 # then the foreword.markdown page, then chapters 1 and 2 (in alphanumeric order)
 # and finally the afterword.  Any pages not matched will be put after the
 # set of matched pages.
-
+# 
+# Note that the items in the list represent regular expressions.  It works by
+# sorting the sections into bins, based on the first regexp matched.  Within the bins,
+# results are returned in alphabetical order.
+#
+# Single quotes are preferred, because you don't have to escape backslashes for character classes
+# like \s, \d, etc.  This needs to be made easier for people who don't have a grasp of regular
+# expressions.
 pages do
   book [
     # matches title_page.markdown, title_page.textile, or 
     # title_page.(any other valid extension). This will be the first
     # scene/chapter/division in the book.
-    "title_page",
-    "foreword",
+    'title_page',
+    'foreword',
 
     # filename matches chapter, followed by anything.  If you have a page called
     # chapter_summary that comes after, you might want to define the matcher more
     # specifically, for example 'chapter-\d+'  (chapter followed by dash followed by any number of numbers).
     # 
-    "chapter-.*", 
-    "afterword"
+    'chapter-.*', 
+    'afterword'
   ]
 
   notes [

@@ -14,8 +14,12 @@ require 'fun_with_testing'
 # require 'test/unit'
 require 'epubforge'
 
+EpubForge.gem_test_mode = true
+
 module EpubForge
   class TestCase < FunWith::Testing::TestCase
+    self.gem_to_test = EpubForge
+    
     include EpubForge::Utils
     include FunWith::Testing::Assertions::Basics
     include FunWith::Testing::Assertions::FunWithFiles
@@ -28,7 +32,7 @@ module EpubForge
         @project_dir = d.current_path.join("project")
         
         @printout = EpubForge.collect_stdout( pipe_output_to ) do   # collect_stdout(STDOUT) to see what's being outputted.
-          @returned = EpubForge::Action::Runner.new.exec( "init", @project_dir, fill_in_project_options )
+          @returned = EpubForge::Action::Runner.new.exec( "new", @project_dir, fill_in_project_options )
         end
         
         assert_directory( @project_dir, "Project directory doesn't exist.  Cannot proceed." )

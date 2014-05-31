@@ -1,23 +1,50 @@
 module EpubForge
   module Action
-    class Forge < ThorAction
-      include_standard_options
-      description "Create ebooks in various formats from the .markdown files in the project's book/ and notes/ subdirectories."
-      
-      desc( "forge", "Wraps the project up in a .epub (ebook) file.")
-      def forge( *args )
-        before_start
-        
-        builder = EpubForge::Epub::Builder.new( @project, :page_order => @project.config["pages"]["book"] )
-
-        builder.build
-        builder.package( @project.filename_for_epub_book )
-        builder.clean
-        puts "Done building epub <#{@project.filename_for_epub_book}>"
+    class Epub < Action2
+      define_action( "epub" ) do |action|
+        # include_standard_options
+        action.help( "Create ebooks in various formats from the .markdown files in the project's book/ and notes/ subdirectories." )
+      # keyword( "forge" )
+      # desc( "forge", "Wraps the project up in a .epub (ebook) file.")
+        action.execute do
+          epub_common( "book" )
+        end
       end
       
-      desc( "forge:epub", "Wraps the project up in a .epub (ebook) file." )
-      alias :epub :forge   # I _think_ this will allow me to also use forge:epub as an alias for forge
+      define_action( "epub:notes" ) do |action|
+        action.help( "Create ebooks for your story bible, instead of your main book" )
+        
+        action.execute do
+          epub_common( "notes" )
+        end
+      end
+      
+      protected
+      def epub_common( target, opts = {} )
+        # opts[:page_order] ||= project.config["pages"][target]
+        case target
+        when "book"
+          opts[:book_dir] ||= project.book_dir
+          outfile = opts.delete(:outfile) || project.filename_for_book.ext("epub")
+        when "notes"
+          opts[:book_dir] ||= project.notes_dir
+          outfile = opts.delete(:outfile) || project.filename_for_notes.ext("epub")
+        else
+          # Hope the caller knows what it's doing.
+          opts[:book_dir] ||= project.book_dir.up.join( target )
+          outfile = opts.delete(:outfile) || project.root_dir.join( "#{project.default_project_basename}.#{target}.epub" )
+        end
+        
+        opts[:verbose] = verbose?
+        builder = EpubForge::Builder::Epub.new( project, opts )
+
+        builder.build
+        builder.package( outfile )
+        builder.clean
+        say_all_is_well( "Done building epub <#{outfile}>" )
+      end
     end
   end
 end
+
+

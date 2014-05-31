@@ -1,28 +1,26 @@
 module EpubForge
   module Action
-    class Init < ThorAction
-      include_standard_options
-      project_not_required
-      
-      desc( "init", "create a new epubforge project" )
-      def init( *args )
-        unless @project.nil? 
-          say_error "Project already exists.  Quitting."
-          return false
+    class New < Action2
+      define_action( "new" ) do |action|
+        action.project_not_required
+        
+        action.help( "Create a brand new project." )
+        action.usage( "new <DIRECTORY_NAME>" )
+        action.default( :verbose, false )
+
+        action.execute do
+          if @project.is_a?(Project)
+            say_error "The directory given (#{@project.root_dir}) is already an EpubForge project.  Quitting."
+            false
+          elsif parse_args( *args )
+            get_template_filepath_from_options
+            configure_configuration( @opts[:answers] || {} )
+            FunWith::Templates::TemplateEvaluator.write( @template_dir, self.destination_root_filepath, @template_options )
+          else
+            false
+          end
         end
-        
-        return false unless parse_args( *args )
-        
-        @template_dir = EpubForge.root.join( "templates", @template_to_use )
-        # src_entries = @template_dir.glob( :all ).map{ |entry|
-        #           entry.relative_path_from( @template_dir )
-        #         }
-        #         
-        #         self.source_paths.push( @template_dir )
-        #         
-        
-        configure_configuration( @opts[:answers] || {} )
-        FunWith::Templates::TemplateEvaluator.write( @template_dir, self.destination_root_filepath, @template_options )
+      end
         # 
         # 
         # 
@@ -64,10 +62,7 @@ module EpubForge
         #     copy_file( entry, self.destination_root_filepath.join( entry ) )
         #   end
         # end
-      end
-      
-      desc( "new", "create a new epubforge project (alias for 'init')")
-      alias :new :init
+      # end
       
       protected
       def configure_configuration(opts = {})
@@ -86,6 +81,8 @@ module EpubForge
           opts[:license] = ask_prettily( "Type in the license you wish to use : " )
         end
         
+        opts[:chapter] ||= (1..(ask_prettily( "How many chapters?" ).to_i))
+        
         @template_options = opts
         
         if git_installed?
@@ -93,8 +90,10 @@ module EpubForge
             configure_git( opts[:git] || {} )
           end
         else
-          warn("The program 'git' must be installed and locatable if you want epubforge to back up your project.")
+          warn( "The program 'git' must be installed and locatable if you want epubforge to back up your project." )
         end
+        
+        configure_character
       end
       
       
@@ -126,22 +125,36 @@ module EpubForge
         true
       end
       
+      def configure_character
+        @template_options[:character] = {
+          :name          => "Mr. Example Protagonist",
+          :name_for_file => "mister_example_protagonist",
+          :description   => "Tall, red hair, angry complexion, indifferent to fashion and hygiene.",
+          :summary       => "Example once drove a man to drink, because the guy's liver once killed his dad.",
+          :age           => 23
+        }
+      end
+      
       def backup_folder_name
-        (@template_options[:title] || "").epf_underscorize + ".epubforge.git"
+        (@template_options[:book][:title] || "").epf_underscorize + ".epubforge.git"
       end
       
       # Expects the following arguments: 1:<project directory (shouldn't exist)>, 2: options hash.
       # Options hash includes: 
       def parse_args( *args )
         @opts = args.last.is_a?(Hash) ? args.pop : {}
-        root = args.shift
+        project_root = args.shift
         
-        if root.nil?
+        case project_root
+        when NilClass
           say_error "No destination directory given."
           return false
+        when Project
+          say_error "You seem to be creating a project within a project.  Cut it out."
+          return false
         end
-
-        self.destination_root_filepath = root.fwf_filepath
+        
+        self.destination_root_filepath = project_root.fwf_filepath
         
         if self.destination_root_filepath.exist? && 
             (!(self.destination_root_filepath.empty?) || !(self.destination_root_filepath.directory?))
@@ -149,8 +162,20 @@ module EpubForge
           return false
         end
         
-        @template_to_use = "default"  # TODO: should turn into an option 
         true
+      end
+      
+      # TODO: Shouldn't the user settings / project settings also be searchable?
+      # Wouldn't preference be given to project, then user settings?
+      def get_template_filepath_from_options
+        @template_to_use = (@opts[:template] || "project").fwf_filepath  # TODO: should turn into an option 
+        if @template_to_use.absolute?
+          @template_dir = @template_to_use
+        else
+          @template_dir = EpubForge.root.join( "templates", @template_to_use )
+        end
+        
+        
       end
     end
   end

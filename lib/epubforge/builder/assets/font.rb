@@ -1,5 +1,5 @@
 module EpubForge
-  module Epub
+  module Builder
     module Assets
       class Font < Asset
         attr_reader :ext, :filename, :name

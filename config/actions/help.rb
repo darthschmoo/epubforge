@@ -1,18 +1,18 @@
 module EpubForge
   module Action
-    class Help < ThorAction
-      project_not_required
-      
-      desc( "help", "print out help for the various actions.")
-      def help( *args )
-        say_instruction "epubforge [action] [folder]"
-        say_instruction "\tActions:"
-        say_instruction ThorAction.command_to_action_classes.inspect
-        # for action in ThorAction.c
-        #   say_instruction "\t( #{action.keywords.join(" | ")} ) :"
-        #   say_instruction "\t\tDescription: #{action.description}"
-        #   say_instruction "\t\tUsage:       #{action.usage}\n"
-        # end
+    class Help < Action2
+      define_action( "help" ) do |action|
+        action.project_not_required
+        action.help( "Print out information for various actions." )
+
+        action.execute do |*args|
+          say_instruction "epubforge [action] [folder]"
+          say_instruction "Actions:"
+          for keyword, action in Action2.loader_pattern_registry
+            say_instruction "        #{keyword} : #{action.help}"
+            say_instruction "             usage: #{$PROGRAM_NAME} #{action.usage}" unless action.usage.fwf_blank?
+          end
+        end
       end
     end
   end

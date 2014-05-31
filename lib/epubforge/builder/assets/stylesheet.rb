@@ -1,5 +1,5 @@
 module EpubForge
-  module Epub
+  module Builder
     module Assets
       class Stylesheet < Asset
         attr_accessor :filename, :name, :contents

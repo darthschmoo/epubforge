@@ -2,33 +2,36 @@ require 'time'  # for Time.parse
 
 module EpubForge
   module Action
-    class WordCount < ThorAction
-      include_standard_options
+    class WordCount < Action2
+      # include_standard_options
       
       WORD_COUNT_FILE = "wordcount"
       
-      description "Manage your word counts for book chapters and notes.  wc (standalone) is main command"
-      keywords    :wc, :count
-      usage       "#{$PROGRAM_NAME} count <project_directory>"
-      
-      desc( "wc", "Countify words.")
-      def wc( *args )
-        before_start
-        @report  = { "Notes" => wc_one_folder( @project.notes_dir ),
-                     "Book"  => wc_one_folder( @project.book_dir  ) }
-
-        load_word_count_history
-        calculate_todays_word_count
-        append_word_count_history( @report )
-        print_report
+      define_action( "wc" ) do |action|
+        action.help( "Manage your word counts for book chapters and notes.  wc (standalone) is main command" )
         
-        say_all_is_well "Done"
-        @report
+      # keywords    :wc
+      #       usage       "#{$PROGRAM_NAME} count <project_directory>"
+      #       
+      # desc( "wc", "Countify words.")
+        action.execute do
+          debugger unless @project
+          @report  = { "Notes" => wc_one_folder( @project.notes_dir ),
+                       "Book"  => wc_one_folder( @project.book_dir  ) }
+
+          load_word_count_history
+          calculate_todays_word_count
+          append_word_count_history( @report )
+          print_report
+        
+          say_all_is_well( "Done" )
+          @report
+        end
       end
       
       protected
       def wc_one_folder( foldername )
-        foldername.glob( ext: EpubForge::Epub::PAGE_FILE_EXTENSIONS ).inject(0) do |count, file|
+        foldername.glob( ext: EpubForge::Builder::PAGE_FILE_EXTENSIONS ).inject(0) do |count, file|
           count += wc_one_file( file )
         end
       end
@@ -116,12 +119,11 @@ module EpubForge
       end
       
       def print_report
-        say "", BLUE
-        say "Wordcount", BLUE
-        say "---------", BLUE
-        say "Notes: #{@report["Notes"]}", BLUE
-        say "Book:  #{@report["Book"]}", BLUE
-        say "Today: #{@report["Today"]}", BLUE
+        say( "\nWordcount", :blue )
+        say( "---------", :blue )
+        say( "Notes: #{@report["Notes"]}", :blue )
+        say( "Book:  #{@report["Book"]}", :blue )
+        say( "Today: #{@report["Today"]}", :blue )
       end
     end
   end
