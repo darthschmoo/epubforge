@@ -15,6 +15,8 @@ require "fun_with_templates"
 require "fun_with_configurations"
 require "fun_with_string_colors"
 require "fun_with_patterns"
+require "json"
+
     
 FunWith::StringColors.activate
 String.colorize( true )
@@ -23,6 +25,7 @@ FunWith::Patterns::GetAndSet.activate
 FunWith::Gems.make_gem_fun( "EpubForge" )
 
 module EpubForge
+  GLOBAL_SETTINGS = EpubForge.root( "config", "settings" )
   USER_SETTINGS = XDG['CONFIG_HOME'].fwf_filepath( "epubforge" )
   DEBUG = false
 
@@ -49,3 +52,5 @@ EpubForge::Action::Action2.loader_pattern_load_from_dir( EpubForge::ACTIONS_DIR,
 EpubForge::Utils::Converter.loader_pattern_load_from_dir( EpubForge::CONVERTERS_DIR, EpubForge::USER_CONVERTERS_DIR )
 EpubForge::Utils::HtmlTranslator.loader_pattern_load_from_dir( EpubForge::HTML_TRANSLATORS_DIR, EpubForge::USER_HTML_TRANSLATORS_DIR )
 
+
+EpubForge::Fonts.install_fwc_config_from_file( EpubForge::GLOBAL_SETTINGS.join( "font_cache_config.rb" ) )

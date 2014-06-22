@@ -6,11 +6,18 @@ module EpubForge
       end
       
       def ask( question, opts = {} )
+        question = question + " (default:#{opts[:default]})" if opts[:default]
+        question << " : "
+        question = question.paint( opts[:color] ) if opts[:color]
+        
+        if opts[:possible_answers].is_a?(Array) && opts[:possible_answers].length == 0
+          warn( "Empty list of answers given for question( '#{question}').  Raising error.")
+          raise "ask() received a :possible_answers option, but it was empty."
+        end
+        
         while true
-          opts[:colors] ||= opts[:color]
-          
           answer = nil
-          input = Readline.readline( question.paint(opts[:colors] ) + " " ).strip
+          input = Readline.readline( question ).strip
           input.strip
           
           if input.fwf_blank?
@@ -35,7 +42,7 @@ module EpubForge
       end
       
       def yes?( message, opts = {} )
-        opts[:colors]   ||= :blue
+        opts[:color]   ||= :blue
         opts[:possible_answers] = ["Y", "y", "N", "n", "yes", "no"]
         opts[:default] ||= "y"
         
@@ -55,6 +62,10 @@ module EpubForge
         answer = ask( "#{message} (y/N)", opts ).downcase
         
         answer == "n"
+      end
+      
+      def continue?( message )
+        yes?( message + "  Are you sure you want to continue?", :color => :yellow)
       end
       
       def say_instruction( instruction )
@@ -77,7 +88,8 @@ module EpubForge
       end
       
       def ask_prettily( question, *args )
-        ask( question.paint(:blue), *args  )
+        args.last[:color] = :blue if args.last.is_a?(Hash)
+        ask( question, *args  )
       end
       
       def say_all_is_well( statement )
@@ -87,7 +99,6 @@ module EpubForge
       def say_error( statement )
         say( statement.paint(:bg_red, :bold) )
       end
-      
     end
   end
 end

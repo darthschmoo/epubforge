@@ -3,7 +3,7 @@ module EpubForge
     class Git < Action2
       define_action( "git:save" ) do |action|
         action.help( "commit changes to your project to your repository" )
-        action.usage( "git:save 'optional commit message'" )
+        action.usage( "'optional commit message'" )
         
         action.execute do
           

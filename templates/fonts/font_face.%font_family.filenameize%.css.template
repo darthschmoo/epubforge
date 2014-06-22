@@ -1,0 +1,27 @@
+/*****************************
+Font:      <%= @font_family.name %>
+Designer:  <%= @font_family.designer %>
+Home Page: <%= @font_family.homepage %>
+License:   <%= @font_family.license %> License
+Category:  <%= @font_family.category %>
+Copyright: <%= @font_family.fonts.first.copyright %>
+******************************/
+
+<% for font in @font_family.fonts %>
+@font-face {
+    font-family: '<%= @font_family.name %>';
+    font-weight: <%= font.weight %>;
+    font-style: <%= font.style %>;
+    src: url('../Fonts/<%= font.filename %>') format('<%= font.format %>'); <% "TODO: Note that the ../Fonts is hard-coded. Not ideal." if false %>
+}
+<% end %>
+
+/******** EXAMPLE ********
+h1.book_title {
+  font-family: "<%= @font_family.name %>", arial;
+  text-align:  center;  
+  font-size:   24pt;
+  
+  margin-top: 3.0em;
+}
+*************************/

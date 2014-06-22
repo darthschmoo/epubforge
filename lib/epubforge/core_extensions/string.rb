@@ -8,7 +8,7 @@ class String
   end
   
   def epf_remove_surrounding_quotes
-    self.gsub(/(^['"]|['"]$)/)
+    self.gsub(/(^['"]|['"]$)/, "")
   end
   
   def epf_remove_surrounding_quotes!

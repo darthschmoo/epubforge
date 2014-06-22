@@ -30,6 +30,7 @@ module EpubForge
       FunWith::Files::DirectoryBuilder.tmpdir do |d|
         pipe_output_to = (verbose ? $stdout : StringIO.new)
         @project_dir = d.current_path.join("project")
+        @project_dir_as_arg = "--project=#{@project_dir}"
         
         @printout = EpubForge.collect_stdout( pipe_output_to ) do   # collect_stdout(STDOUT) to see what's being outputted.
           @returned = EpubForge::Action::Runner.new.exec( "new", @project_dir, fill_in_project_options )
@@ -62,6 +63,7 @@ module EpubForge
       end
     end
     
+    # Use this instead of EpubForge::Action::Runner.new.exec().  Watches for errors for you.
     def runner_exec( *args )
       if @runner_exec_quiet
         @runner_exec_printout = EpubForge.collect_stdout do
@@ -73,7 +75,7 @@ module EpubForge
       
       if @run_description.errors? # , "running forge caused errors (#{run_desc.errors.length})"
         error = @run_description.errors.first
-        case @runner_exec_errors_action
+        case @runner_exec_errors_action || :raise
         when :raise
           raise error
         when :print

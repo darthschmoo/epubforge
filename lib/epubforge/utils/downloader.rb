@@ -32,13 +32,13 @@ module EpubForge
       rescue URI::InvalidURIError => e
         puts "Tried to get #{@uri.path} but failed with URI::InvalidURIError."
       rescue OpenURI::HTTPError => e
-        STDERR.write( "Couldn't fetch podcast info from #{@uri.path}\n" )
+        STDERR.write( "Couldn't download from #{@uri}\n" )
         STDERR.write( "#{e}\n\n" )
       rescue SocketError => e
-        STDERR.write( "Problem connecting to server (Socket error) when downloading #{@uri.path}." )
+        STDERR.write( "Problem connecting to server (Socket error) when downloading #{@uri}." )
         STDERR.write( "#{e}\n\n" )
       rescue URI::InvalidURIError => e
-        STDERR.write( "URI::InvalidURIError for #{@uri.path}." )
+        STDERR.write( "URI::InvalidURIError for #{@uri}." )
         STDERR.write( "#{e}\n\n" )
         # this may be too broad a filter
         # TODO: retry?
@@ -46,7 +46,7 @@ module EpubForge
         STDERR.write( "Problem connecting to server (System call error) when downloading #{@uri.path}" )
         STDERR.write( "#{e}\n\n" )
       rescue OpenSSL::SSL::SSLError => e
-        STDERR.write( "OpenSSL::SSL::SSLError while downloading #{@uri.path}" )
+        STDERR.write( "OpenSSL::SSL::SSLError while downloading #{@uri}" )
         STDERR.write( "#{e}\n\n" )
       # rescue Timeout::Error
       #   STDERR.write( "Timeout error connecting to #{@uri.path}" )

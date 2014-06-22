@@ -114,7 +114,8 @@ module EpubForge
           return false
         end
       
-        result += "\n\n<!-- generated from #{@format} by html translator #{@name} -->\n" 
+        # Debugging only.
+        # result += "\n\n<!-- generated from #{@format} by html translator #{@name} -->\n" 
         result
       end
     

@@ -1,2 +1,6 @@
+body#cover img.cover{
+  width: 100%;  
+}
+
 div#epubforge_scene_description{ display: none }
 

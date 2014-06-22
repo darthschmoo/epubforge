@@ -6,6 +6,9 @@ module EpubForge
         def initialize( filename, options = {} )
           @filename = filename.fwf_filepath
           @name, @ext  = @filename.basename_and_ext
+          
+          
+          
         end
         
         def link

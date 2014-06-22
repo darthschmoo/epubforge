@@ -31,7 +31,7 @@ module EpubForge
         @config  = project.config
         @book_dir_short = opts[:book_dir] ? opts[:book_dir].split.last.to_s : "book"
         @book_dir = @project.root_dir.join( @book_dir_short )   # TODO: .expand?
-        
+
         @config.page_orderer = Utils::FileOrderer.new( opts[:page_order] || @config.pages[@book_dir_short] )
 
         @metadata = @config.metadata || {}
@@ -91,7 +91,7 @@ module EpubForge
           # no need to do anything
         elsif @cover_image = @images.detect(&:cover?)
           # actually install cover
-          contents = "<div id='cover'><img class='cover' src='#{@cover_image.link.relative_path_from(TEXT_DIR)}' alt='#{@metadata.name}, by #{@metadata.author}'/></div>"
+          contents = "<div><img class='cover' src='#{@cover_image.link.relative_path_from(TEXT_DIR)}' alt='#{@metadata.name}, by #{@metadata.author}'/></div>"
           cover_file = @project.book_dir.join( "cover.xhtml" )
           cover_file.write( wrap_page( contents, "cover" ) )
           @cover_section = Assets::Page.new( cover_file, @metadata, @project )

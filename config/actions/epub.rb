@@ -19,6 +19,17 @@ module EpubForge
         end
       end
       
+      define_action( "epub:unzip" ) do |action|
+        action.help( "Unzip your generated .epub file into a temporary directory." )
+        action.execute do
+          book = @project.filename_for_book.ext("epub")
+          raise "Error unzipping epub: No ebook at #{book}" unless book.file?
+          tmpdir = book.dirname.join("tmp").timestamp.touch_dir
+          debugger
+          `unzip #{book} -d #{tmpdir}`
+        end
+      end
+      
       protected
       def epub_common( target, opts = {} )
         # opts[:page_order] ||= project.config["pages"][target]

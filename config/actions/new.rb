@@ -5,7 +5,7 @@ module EpubForge
         action.project_not_required
         
         action.help( "Create a brand new project." )
-        action.usage( "new <DIRECTORY_NAME>" )
+        action.usage( "<DIRECTORY_NAME>" )
         action.default( :verbose, false )
 
         action.execute do
@@ -109,8 +109,8 @@ module EpubForge
         
         if opts[:backup_type] == opts[:remote]
           opts[:host] ||= ask_prettily("Enter the name of the remote host : ")
-          opts[:user] ||= ask_prettily("Enter your user name : ")
-          opts[:repo] ||= ask_prettily("Enter the name of the folder on the remote host. A folder called #{backup_folder_name} will be created there : ")
+          opts[:user] ||= ask_prettily( "Enter your user name", :default => ENV['USER'] )
+          opts[:repo] ||= ask_prettily( "Enter the name of the folder on the remote host. A folder called #{backup_folder_name} will be created there : ")
         elsif opts[:backup_type] == opts[:thumb]
           opts[:repo] ||= ask_prettily("Enter the full path to the backup folder. A folder called #{backup_folder_name} will be created there: ")
         else

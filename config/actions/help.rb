@@ -5,12 +5,11 @@ module EpubForge
         action.project_not_required
         action.help( "Print out information for various actions." )
 
-        action.execute do |*args|
-          say_instruction "epubforge [action] [folder]"
+        action.execute do
           say_instruction "Actions:"
           for keyword, action in Action2.loader_pattern_registry
-            say_instruction "        #{keyword} : #{action.help}"
-            say_instruction "             usage: #{$PROGRAM_NAME} #{action.usage}" unless action.usage.fwf_blank?
+            say_instruction "  #{keyword} : #{action.help}"
+            say_instruction "     usage: #{$PROGRAM_NAME} #{action.keyword} #{action.usage}" unless action.usage.fwf_blank?
           end
         end
       end

@@ -118,14 +118,55 @@ class TestEpubforge < EpubForge::TestCase  #
       
       should "create an .epub of the notes directory" do
         create_project do
-          EpubForge::Action::Runner.new.exec( "epub:notes", @project_dir )
+          runner_exec( "epub:notes", @project_dir )
           assert @notes_file.file?
           assert ! @notes_file.empty?
         end
       end
       
       should "print friggin' something when no args" do
-        EpubForge::Action::Runner.new.exec()
+        runner_exec()
+      end
+      
+      should "install a font" do
+        create_project do
+          runner_exec( "font:install", "Ubuntu", @project_dir_as_arg )
+          
+          @project_dir.join( "book" ) do |bookdir|
+            bookdir.join( "fonts" ) do |fontdir|
+              assert_equal 8, fontdir.glob(:ext => :ttf).length
+              fontdir.join( "Ubuntu-Regular.ttf" ) do |fontfile|
+                assert_fwf_filepath fontfile
+                assert_file_not_empty fontfile
+              end
+            end
+            
+            bookdir.join( "stylesheets" ) do |styledir|
+              assert_directory styledir
+              styledir.join( "font_face.ubuntu.css" ) do |facefile|
+                assert_file_not_empty facefile
+                assert_file_contents facefile, /@font-face \{/, 8
+              end
+            end
+            
+            # Knit the book together and unzip into a temporary directory.  Examine results.
+            runner_exec( "epub", @project_dir_as_arg )
+            runner_exec( "epub:unzip", @project_dir_as_arg )
+            
+            tmpdir = @project_dir.glob("tmp.*").first
+            assert_directory tmpdir
+            
+            tmpdir.join("OEBPS", "Fonts") do |fontdir|
+              assert 8, fontdir.glob(:ext => :ttf).length
+              for fontfile in fontdir.glob(:ext => :ttf)
+                assert_file_not_empty fontfile
+              end
+            end
+            
+            debugger
+            5
+          end
+        end
       end
     end
   end

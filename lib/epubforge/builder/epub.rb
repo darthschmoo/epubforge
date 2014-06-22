@@ -76,7 +76,7 @@ module EpubForge
           #         <meta name="dtb:maxPageNumber" content="0"/>
           #     </head>
           b.head do
-            b.meta :name => "dtb:uid", :content => "58cf98c8-e5be-416d-8ce8-ceae573d5ac5"
+            b.meta :name => "dtb:uid", :content => @metadata["uuid"]
             b.meta :name => "dtb:depth", :content => "1"
             b.meta :name => "dtb:totalPageCount", :content => "0"
             b.meta :name => "dtb:maxPageNumber", :content=> "0"
@@ -157,7 +157,7 @@ module EpubForge
             b.dc :title, @metadata["name"]
             b.dc :creator, {:"opf:role" => "aut"}, @metadata["author"]
             b.dc :language, "en-US"
-            b.dc :identifier, {:id => "BookID", "opf:scheme" => "UUID"}, "urn:uuid:58cf98c8-e5be-416d-8ce8-ceae573d5ac5"  #TODO Unique id generator
+            b.dc :identifier, {:id => "BookID", "opf:scheme" => "UUID"}, "#{@metadata["uuid"]}"  #TODO Unique id generator
             b.dc :rights, @metadata["license"]
             b.dc :publisher, @metadata["publisher"] || "A Pack of Orangutans"
             b.dc :date, {:"opf:event" => "original-publication"}, @metadata["original-publication"] || Time.now.year
