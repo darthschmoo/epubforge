@@ -77,13 +77,28 @@ module EpubForge
       # As a side-effect, replaces implicit directories with an explicit --project flag as the final argument
       # because Thor seems to like explicit flags.  Though I'm moving away from Thor.  
       def fetch_project
-        project_dir =   fetch_project_by_project_flag
+        project_dir =   fetch_project_by_project_object
+        project_dir ||= fetch_project_by_project_flag
         project_dir ||= fetch_project_by_second_arg
         project_dir ||= fetch_project_by_current_dir
-
+        # debugger if project_dir.nil? && @args.first != "new"
+        
         if project_dir
           @run_description.project = Project.new( project_dir )
           @args.push( "--project=#{project_dir}" )
+        end
+      end
+      
+      # When calling internally, why not just pass in a project object?
+      def fetch_project_by_project_object
+        return nil
+        index = @args.index{|arg| arg.is_a?(Project) }
+        
+        if index.nil?
+          nil
+        else
+          proj = @args.delete_at( index )
+          proj.root_dir         # Everything else is giving a directory string / filepath
         end
       end
       
@@ -103,14 +118,24 @@ module EpubForge
         
         project_dir
       end
+
+      # Newer version.  Uncomment?
+      # def fetch_project_by_second_arg
+      #   arg = @args[1]
+      #   if (arg.is_a?(String) || arg.is_a?(FunWith::Files::FilePath)) && Project.is_project_dir?( arg )
+      #     @args.delete_at(1)
+      #   else
+      #     nil
+      #   end
+      # end
       
-      def fetch_project_by_second_arg
-        if Project.is_project_dir?( @args[1] )
-          return @args.delete_at(1)
-        else
-          return nil
-        end
-      end
+       def fetch_project_by_second_arg
+         if Project.is_project_dir?( @args[1] )
+           return @args.delete_at(1)
+         else
+           return nil
+         end
+       end
       
       def fetch_project_by_current_dir
         cwd = FunWith::Files::FilePath.cwd

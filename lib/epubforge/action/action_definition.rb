@@ -7,11 +7,13 @@ module EpubForge
       get_and_set_boolean :project_required, :verbose
       
       alias :loader_pattern_registry_key :keyword
-      
+
+      # save the proc defined by action.execute().  Used in the various Action files.
       def execute( &block )
         proc( block )
       end
       
+      # Run the proc for this action defined by action.execute()
       def run( *args )
         action = klass.new    # one of the action classes (New or Git or Epub, etc.)
         puts( "Sending args to Action(#{self.keyword}) : #{ 'NO ARGS' if args.fwf_blank? }".paint(:pink) ) if EpubForge.gem_test_mode?
@@ -34,15 +36,6 @@ module EpubForge
         (@default_args ||= {})[name] = value
       end
 
-      # def project_required?
-      #   @project_required = true if @project_required.nil?
-      #   @project_required
-      # end
-      
-      # def verbose?
-      #   @verbose == true
-      # end
-      
       # Most actions require -- nay, demand! -- a project to act upon.
       # Add the line 'project_not_required' to the class definition
       # to keep it from failing out if it can't find an existing project.

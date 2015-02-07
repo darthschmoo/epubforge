@@ -24,6 +24,8 @@ FunWith::Patterns::GetAndSet.activate
 
 FunWith::Gems.make_gem_fun( "EpubForge" )
 
+EpubForge::CoreExtensions.install_extensions
+
 module EpubForge
   GLOBAL_SETTINGS = EpubForge.root( "config", "settings" )
   USER_SETTINGS = XDG['CONFIG_HOME'].fwf_filepath( "epubforge" )

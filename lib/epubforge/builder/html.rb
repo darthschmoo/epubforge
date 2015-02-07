@@ -4,6 +4,7 @@ module EpubForge
       def build
         @html_content = ""
         
+        debugger
         @sections.each do |section|
           @html_content << section.html
           @html_content << "\n\n"         # couldn't hurt?

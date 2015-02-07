@@ -15,7 +15,6 @@ module EpubForge
       #       
       # desc( "wc", "Countify words.")
         action.execute do
-          debugger unless @project
           @report  = { "Notes" => wc_one_folder( @project.notes_dir ),
                        "Book"  => wc_one_folder( @project.book_dir  ) }
 

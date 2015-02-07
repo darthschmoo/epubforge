@@ -39,7 +39,7 @@ module EpubForge
         dest = @project.filename_for_book.ext( "mobi" )
         
         unless src.file?
-          puts "Failure: source .epub doesn't exist: #{src}".pain(:red)
+          puts "Failure: source .epub doesn't exist: #{src}".paint(:red)
         end
         
         # Sigh, Kindlegen is stupid

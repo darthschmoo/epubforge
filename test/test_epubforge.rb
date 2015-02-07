@@ -162,10 +162,16 @@ class TestEpubforge < EpubForge::TestCase  #
                 assert_file_not_empty fontfile
               end
             end
-            
-            debugger
-            5
           end
+        end
+      end
+      
+      should "implicitly create epub when asked to unzip" do
+        create_project do
+          runner_exec( "epub:unzip", @project_dir_as_arg )
+          tmpdir = @project_dir.glob("tmp.*").first
+          
+          assert_directory( tmpdir.join( "OEBPS", "Text" ))
         end
       end
     end

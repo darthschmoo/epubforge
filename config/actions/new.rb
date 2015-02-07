@@ -31,11 +31,7 @@ module EpubForge
         # for dir in src_dirs
         #   puts "creating dir #{dir}"
         #   empty_directory( self.destination_root_filepath.join( dir ) )
-        #   debugger unless self.destination_root_filepath.join( dir ).directory?
-        #   5
         # end
-        # 
-        # debugger unless self.destination_root_filepath.directory?
         # 
         # for entry in src_entries - src_dirs
         #   case entry.ext

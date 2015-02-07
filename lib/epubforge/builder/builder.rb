@@ -21,6 +21,7 @@ module EpubForge
     class Builder
       attr_reader :stylesheets
       attr_reader :project
+      attr_reader :sections
       
       def initialize project, opts = {}
         target_file = opts[:target_file] || project.filename_for_book.ext("epub")  # TODO: But what about notes?
